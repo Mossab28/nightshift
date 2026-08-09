@@ -699,7 +699,11 @@ async function viewSettings() {
 
   const connForm = node.querySelector("#conn-form");
   connForm.gms_url.value = ws.gms_url || "";
-  node.querySelector("#token-note").textContent = ws.has_token ? "· token stored" : "";
+  node.querySelector("#token-note").textContent = ws.has_token
+    ? "· token stored"
+    : ws.connected || ws.gms_url
+      ? "· connected (OSS, no token)"
+      : "";
   const connHint = node.querySelector("#conn-hint");
   connForm.onsubmit = async (e) => {
     e.preventDefault();

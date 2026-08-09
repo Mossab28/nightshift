@@ -135,6 +135,7 @@ def get_workspace(workspace_id: str, user: User = Depends(_current_user)) -> dic
             "name": w.name,
             "gms_url": w.gms_url,
             "has_token": bool(w.gms_token_encrypted),
+            "connected": bool(w.gms_url),
             "sentinel_enabled": w.sentinel_enabled,
             "sentinel_interval_s": w.sentinel_interval_s,
             "watches": [
