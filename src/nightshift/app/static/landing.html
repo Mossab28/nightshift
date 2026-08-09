@@ -20,152 +20,197 @@
     <a class="wordmark wordmark--nav" href="#top"><span class="moon" aria-hidden="true">☽</span> Nightshift</a>
     <span class="nav__rule" aria-hidden="true"></span>
     <nav class="nav__links" aria-label="Page">
-      <a class="nav__link" href="#shift">The shift</a>
+      <a class="nav__link" href="#warroom">War room</a>
       <a class="nav__link" href="#graph">The graph</a>
       <a class="nav__link" href="#sentinel">Sentinel</a>
       <a class="nav__link" href="https://github.com/Mossab28/nightshift">GitHub</a>
     </nav>
     <span class="nav__rule" aria-hidden="true"></span>
-    <a class="btn btn--ghost btn--sm" href="/app">War room</a>
+    <a class="btn btn--ghost btn--sm" href="/app">Open app</a>
     <a class="btn btn--solid btn--sm" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline</a>
   </div>
 </header>
 
 <header class="hero" id="top">
   <canvas id="sky" class="hero__sky" aria-hidden="true"></canvas>
-  <div class="shell hero__lead">
-    <p class="eyebrow eyebrow--mono">&gt; datahub · on-call agents</p>
-    <h1 class="display" id="headline">
+  <div class="shell hero__lead hero__lead--center">
+    <p class="eyebrow eyebrow--mono eyebrow--center">&gt; datahub · on-call agents</p>
+    <h1 class="display display--center" id="headline">
       <span class="display__dim">An investigation</span><br>
       becomes a <span class="display__ink">lookup.</span>
     </h1>
-    <p class="lede">
+    <p class="lede lede--center">
       Claude agents on your DataHub graph. They take the pager, fix the break,
       and write the postmortem into the graph itself.
     </p>
-    <div class="hero__actions">
+    <div class="hero__actions hero__actions--center">
       <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline yourself</a>
-      <a class="btn btn--ghost" href="/app">Open the war room</a>
+      <a class="btn btn--ghost" href="#warroom">Watch a shift</a>
     </div>
-    <p class="fineprint">Apache 2.0 · MCP write surface upstreamed · no install to try</p>
-  </div>
-  <div class="shell hero__caption-wrap">
+    <p class="fineprint fineprint--center">Apache 2.0 · MCP write surface upstreamed · no install to try</p>
     <p class="caption hero__caption" id="sky-caption" aria-live="polite">The graph is calm.</p>
   </div>
 </header>
 
 <main id="main">
 
-  <section class="section" id="problem">
+  <!-- THE WAR ROOM: Claude-style shift chat — the product, not a paragraph -->
+  <section class="section section--tight" id="warroom">
     <div class="shell">
+      <div class="rv band-head band-head--center">
+        <p class="eyebrow eyebrow--mono eyebrow--center">&gt; the war room</p>
+        <p class="pair pair--center">One night. One conversation. The graph learns.</p>
+      </div>
+
+      <div class="war rv" id="war" style="--d:80ms">
+        <aside class="war__rail" aria-hidden="true">
+          <div class="war__rail-head">
+            <span class="moon">☽</span> shifts
+          </div>
+          <button type="button" class="war__thread is-on" data-night="3">
+            <span class="war__thread-t">Night 3 · memory</span>
+            <span class="war__thread-s">1.1 min · 5 calls</span>
+          </button>
+          <button type="button" class="war__thread" data-night="1">
+            <span class="war__thread-t">Night 1 · cold</span>
+            <span class="war__thread-s">2.2 min · 14 calls</span>
+          </button>
+          <div class="war__rail-foot">
+            <span class="pulse"></span>
+            live from examples/
+          </div>
+        </aside>
+
+        <div class="war__chat">
+          <header class="war__top">
+            <div class="war__top-left">
+              <span class="war__status" id="war-status">idle</span>
+              <b id="war-title">Night 3 · started from memory</b>
+            </div>
+            <div class="war__top-right mono" id="war-clock">17:19:23</div>
+          </header>
+
+          <div class="war__stream" id="war-stream" aria-live="polite"></div>
+
+          <footer class="war__composer" aria-hidden="true">
+            <div class="war__composer-box">
+              <span class="war__composer-ph">Paged · revenue dashboard zero for last week…</span>
+              <span class="war__composer-send">↵</span>
+            </div>
+            <div class="war__steps" id="war-steps" role="list">
+              <span class="war__step" data-step="recall">Recall</span>
+              <span class="war__step" data-step="lineage">Lineage</span>
+              <span class="war__step" data-step="diagnose">Diagnose</span>
+              <span class="war__step" data-step="remember">Remember</span>
+              <span class="war__step" data-step="fix">Fix PR</span>
+            </div>
+          </footer>
+        </div>
+
+        <aside class="war__graph" aria-label="Write-back into DataHub">
+          <div class="war__graph-head">DataHub · write-back</div>
+          <ul class="war__aspects" id="war-aspects">
+            <li data-aspect="incident"><i style="--c:var(--alarm)"></i><span>Incident</span><b>—</b></li>
+            <li data-aspect="doc"><i style="--c:var(--moon)"></i><span>Postmortem</span><b>—</b></li>
+            <li data-aspect="memory"><i style="--c:var(--memory)"></i><span>Memory JSON</span><b>—</b></li>
+            <li data-aspect="tag"><i style="--c:var(--tool)"></i><span>Failure tag</span><b>—</b></li>
+            <li data-aspect="guard"><i style="--c:var(--write)"></i><span>Presence guard</span><b>—</b></li>
+            <li data-aspect="pr"><i style="--c:var(--ink)"></i><span>Draft PR</span><b>—</b></li>
+          </ul>
+        </aside>
+      </div>
+    </div>
+  </section>
+
+  <!-- THE MORNING: filled split, not a lonely left column -->
+  <section class="section" id="problem">
+    <div class="shell split">
       <div class="rv">
         <p class="eyebrow eyebrow--mono">&gt; the morning</p>
         <p class="giant mono">2:47<span class="giant-am">AM</span></p>
-        <p class="pair">A column renamed upstream. Nobody told anyone.</p>
-        <p class="pair dim">The dashboard reads zero. <span class="who">Finance saw it first.</span></p>
+        <p class="pair">A column renamed upstream.</p>
+        <p class="pair dim">Nobody told anyone.</p>
       </div>
-      <div class="surface slack rv" style="--d:120ms">
-        <div class="avatar" aria-hidden="true">FN</div>
-        <div>
-          <p class="meta"><b>Priya (Finance)</b><time>9:07 AM</time></p>
-          <p class="msg">Why is the revenue dashboard showing zero for last week?</p>
+      <div class="rv stack" style="--d:120ms">
+        <div class="dash surface">
+          <div class="dash__bar">
+            <span>Essential KPI Measures</span>
+            <span class="dash__badge">PowerBI</span>
+          </div>
+          <div class="dash__kpi">
+            <span class="dash__label">Total revenue · 7d</span>
+            <span class="dash__zero" id="dash-zero">$0</span>
+          </div>
+          <div class="dash__spark" aria-hidden="true">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+        </div>
+        <div class="surface slack">
+          <div class="avatar" aria-hidden="true">FN</div>
+          <div>
+            <p class="meta"><b>Priya (Finance)</b><time>9:07 AM</time></p>
+            <p class="msg">Why is the revenue dashboard showing zero for last week?</p>
+          </div>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="section" id="shift">
+  <!-- MEASURED: two nights filling the width -->
+  <section class="section" id="numbers">
     <div class="shell">
-      <div class="rv">
-        <p class="eyebrow eyebrow--mono">&gt; the shift</p>
-        <p class="pair">Nightshift takes the pager.</p>
-        <p class="pair dim">Then writes what it learned <strong>into the graph.</strong></p>
+      <div class="rv band-head band-head--center">
+        <p class="eyebrow eyebrow--mono eyebrow--center">&gt; measured</p>
+        <p class="pair pair--center">Same break. Two nights apart.</p>
       </div>
-      <div class="shift surface" role="list">
-        <div class="step" role="listitem" style="--step-c:var(--memory); --step-d:0ms">
-          <div class="dot"></div>
-          <h3>Recall</h3>
-          <p>Ask the graph first.</p>
-        </div>
-        <div class="step" role="listitem" style="--step-c:var(--tool); --step-d:100ms">
-          <div class="dot"></div>
-          <h3>Lineage</h3>
-          <p>Walk upstream.</p>
-        </div>
-        <div class="step" role="listitem" style="--step-c:var(--tool); --step-d:200ms">
-          <div class="dot"></div>
-          <h3>Diagnose</h3>
-          <p>One cause, proven.</p>
-        </div>
-        <div class="step" role="listitem" style="--step-c:var(--ink); --step-d:300ms">
-          <div class="dot"></div>
-          <h3>Remember</h3>
-          <p>Write the graph.</p>
-        </div>
-        <div class="step" role="listitem" style="--step-c:var(--write); --step-d:400ms">
-          <div class="dot"></div>
-          <h3>Fix PR</h3>
-          <p>A draft, never merged.</p>
-        </div>
+      <div class="nights rv" style="--d:100ms">
+        <article class="night surface">
+          <p class="night__label">Night 1 · cold</p>
+          <p class="night__val mono"><span data-count="14">0</span><small>calls</small></p>
+          <p class="night__sub mono">2.2 min · full lineage walk</p>
+        </article>
+        <div class="nights__arrow" aria-hidden="true">→</div>
+        <article class="night surface night--learned">
+          <p class="night__label">Night 3 · memory</p>
+          <p class="night__val mono learned"><span data-count="5">0</span><small>calls</small></p>
+          <p class="night__sub mono">1.1 min · no lineage re-walked</p>
+        </article>
       </div>
     </div>
   </section>
 
+  <!-- GRAPH: aspects lighting as a surface, not chips alone -->
   <section class="section" id="graph">
-    <div class="shell">
+    <div class="shell split split--reverse">
       <div class="rv">
         <p class="eyebrow eyebrow--mono">&gt; what the graph keeps</p>
         <p class="pair">Every conclusion lands where your team already looks.</p>
+        <p class="lede" style="margin-top:18px">
+          Incident, docs, structured memory, tag, presence guard, draft PR.
+          Nightshift itself is stateless. The memory lives in DataHub.
+        </p>
       </div>
-      <ul class="chips rv" style="--d:100ms">
-        <li class="chip" style="--i:0"><i class="chip__dot" style="--c:var(--alarm)"></i>Incident resolved</li>
-        <li class="chip" style="--i:1"><i class="chip__dot" style="--c:var(--moon)"></i>Postmortem in docs</li>
-        <li class="chip" style="--i:2"><i class="chip__dot" style="--c:var(--memory)"></i>Structured memory</li>
-        <li class="chip" style="--i:3"><i class="chip__dot" style="--c:var(--tool)"></i>Failure-mode tag</li>
-        <li class="chip" style="--i:4"><i class="chip__dot" style="--c:var(--write)"></i>Presence guard</li>
-        <li class="chip" style="--i:5"><i class="chip__dot" style="--c:var(--ink)"></i>Draft fix PR</li>
-      </ul>
-    </div>
-  </section>
-
-  <section class="section" id="warroom">
-    <div class="shell">
-      <div class="rv">
-        <p class="eyebrow eyebrow--mono">&gt; the war room</p>
-        <p class="pair">One night of on-call work, on one page.</p>
-      </div>
-      <figure class="stage rv" style="--d:140ms">
-        <div class="stage__bar" aria-hidden="true">
-          <i></i><i></i><i></i>
-          <b>nightshift · war room</b>
+      <div class="dh surface rv" style="--d:120ms" aria-hidden="true">
+        <div class="dh__tabs">
+          <span class="is-on">Documentation</span>
+          <span>Validations</span>
+          <span>Properties</span>
+          <span>Incidents</span>
         </div>
-        <img src="/assets/warroom.png" width="1440" height="900" alt="Nightshift war room showing a live shift with tool calls and write-back into DataHub">
-      </figure>
-    </div>
-  </section>
-
-  <section class="section" id="numbers">
-    <div class="shell">
-      <div class="rv">
-        <p class="eyebrow eyebrow--mono">&gt; measured</p>
-        <p class="pair">Same break, two nights apart.</p>
+        <div class="dh__body">
+          <p class="dh__title">order_details · postmortem</p>
+          <p class="dh__prose">Started from memory. Upstream rename <code>order_total</code> → <code>order_amount</code>. Deployed dbt still selects the old column. Fix PR opened as draft.</p>
+          <div class="dh__tags">
+            <span>nightshift.silent-schema-change</span>
+            <span class="ok">guard · column present</span>
+          </div>
+        </div>
       </div>
-      <div class="figure rv mono" style="--d:120ms" aria-label="14 investigation calls on night one, 5 on night three">
-        <span class="fig-n" data-count="14">0</span>
-        <span class="fig-arrow">→</span>
-        <span class="fig-n learned" data-count="5">0</span>
-        <span class="fig-unit">calls</span>
-      </div>
-      <div class="fig-sub rv mono" style="--d:220ms">
-        <span>2.2</span><span class="fig-arrow-s">→</span><span class="learned">1.1</span>
-        <span class="fig-unit-s">min wall-clock</span>
-      </div>
-      <p class="lookup-line rv" style="--d:340ms">Night 3: no lineage re-walked.</p>
     </div>
   </section>
 
   <section class="section" id="sentinel">
-    <div class="shell">
+    <div class="shell split">
       <div class="rv">
         <p class="eyebrow eyebrow--mono">&gt; the sentinel</p>
         <p class="pair"><strong>Nobody presses the button.</strong></p>
@@ -179,15 +224,15 @@
   </section>
 
   <section class="section section--close" id="cta">
-    <div class="shell centred">
-      <div class="rv">
-        <p class="eyebrow eyebrow--mono">&gt; put the night on shift</p>
-        <h2 class="display display--sm"><span class="moon" aria-hidden="true">☽</span> Break it. Watch it learn.</h2>
-        <div class="hero__actions">
+    <div class="shell">
+      <div class="rv band-head band-head--center">
+        <p class="eyebrow eyebrow--mono eyebrow--center">&gt; put the night on shift</p>
+        <h2 class="display display--sm display--center"><span class="moon" aria-hidden="true">☽</span> Break it. Watch it learn.</h2>
+        <div class="hero__actions hero__actions--center">
           <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline yourself</a>
           <a class="btn btn--ghost" href="/app">Open the war room</a>
         </div>
-        <p class="fineprint">
+        <p class="fineprint fineprint--center">
           <a href="https://github.com/datahub-project/datahub-skills/pull/126">Upstream PR #126</a>
           · <a href="https://github.com/Mossab28/nightshift">GitHub</a>
           · Built on the DataHub MCP Server

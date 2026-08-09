@@ -388,7 +388,7 @@
       if (en.target.querySelector("[data-count]")) runCounters(en.target);
     });
   }, { threshold: 0.22 });
-  document.querySelectorAll(".rv, .shift, .chips, .figure").forEach(function (el) {
+  document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
     io.observe(el);
   });
 
@@ -407,6 +407,200 @@
       requestAnimationFrame(tick);
     });
   }
+})();
+
+/* War room — Claude-style shift chat that plays the real night. */
+(function () {
+  var root = document.getElementById("war");
+  var stream = document.getElementById("war-stream");
+  if (!root || !stream) return;
+
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var statusEl = document.getElementById("war-status");
+  var titleEl = document.getElementById("war-title");
+  var clockEl = document.getElementById("war-clock");
+  var stepsEl = document.getElementById("war-steps");
+  var aspects = document.getElementById("war-aspects");
+  var playing = false;
+  var timer = 0;
+
+  var NIGHTS = {
+    "3": {
+      title: "Night 3 · started from memory",
+      clock: "17:19:23",
+      events: [
+        { kind: "pager", who: "pager", text: "Revenue dashboard showing zero for last week. Fine at yesterday's close. Finance noticed first.", step: null, wait: 500 },
+        { kind: "agent", who: "nightshift", text: "Recalling prior nights on this asset before I walk anything.", step: "recall", wait: 700 },
+        { kind: "tool", name: "recall_incident_memory", tone: "memory", detail: "Essential_KPI_Measures · 2 prior postmortems", step: "recall", aspect: null, wait: 650 },
+        { kind: "agent", who: "nightshift", text: "Known break. Two catalog reads, then write-back. No lineage re-walk.", step: "lineage", wait: 700 },
+        { kind: "tool", name: "list_schema_fields", tone: "tool", detail: "orders · only order_amount (renamed from order_total)", step: "lineage", wait: 550 },
+        { kind: "tool", name: "get_entities", tone: "tool", detail: "dbt order_details · still selects o.order_total", step: "diagnose", wait: 550 },
+        { kind: "agent", who: "nightshift", text: "One root cause: deployed model never got the alias. Opening the incident.", step: "diagnose", wait: 650 },
+        { kind: "tool", name: "open_incident → resolve", tone: "write", detail: "045d5439 · revenue zeroed overnight", step: "remember", aspect: "incident", wait: 500 },
+        { kind: "tool", name: "remember_incident", tone: "memory", detail: "silent-schema-change · written to docs + JSON + tag", step: "remember", aspect: "doc,memory,tag", wait: 550 },
+        { kind: "tool", name: "guard_column", tone: "write", detail: "order_details.order_total · presence assertion", step: "remember", aspect: "guard", wait: 500 },
+        { kind: "tool", name: "open_fix_pr", tone: "write", detail: "draft · o.order_amount AS order_total", step: "fix", aspect: "pr", wait: 550 },
+        { kind: "report", who: "morning report", text: "Started from memory. 5 investigation calls. 1.1 min wall-clock. No lineage re-walked. Graph smarter than tonight found it.", step: "fix", wait: 0 },
+      ],
+    },
+    "1": {
+      title: "Night 1 · cold start",
+      clock: "17:13:32",
+      events: [
+        { kind: "pager", who: "pager", text: "Revenue dashboard showing zero for last week. Finance noticed before we did.", step: null, wait: 500 },
+        { kind: "agent", who: "nightshift", text: "No memory on this asset. Walking lineage from the dashboard.", step: "recall", wait: 700 },
+        { kind: "tool", name: "get_lineage", tone: "tool", detail: "PowerBI → order_details → orders", step: "lineage", wait: 600 },
+        { kind: "tool", name: "list_schema_fields", tone: "tool", detail: "orders · order_total gone, order_amount present", step: "lineage", wait: 550 },
+        { kind: "tool", name: "get_dataset_queries", tone: "tool", detail: "dbt still selects o.order_total", step: "diagnose", wait: 550 },
+        { kind: "agent", who: "nightshift", text: "Silent upstream rename. One cause. Writing it into the graph.", step: "diagnose", wait: 650 },
+        { kind: "tool", name: "open_incident → resolve", tone: "write", detail: "c9f3ffe7", step: "remember", aspect: "incident", wait: 500 },
+        { kind: "tool", name: "remember_incident", tone: "memory", detail: "first postmortem on this failure mode", step: "remember", aspect: "doc,memory,tag", wait: 550 },
+        { kind: "tool", name: "guard_column", tone: "write", detail: "order_details.order_total", step: "remember", aspect: "guard", wait: 500 },
+        { kind: "tool", name: "open_fix_pr", tone: "write", detail: "draft fix PR", step: "fix", aspect: "pr", wait: 550 },
+        { kind: "report", who: "morning report", text: "Cold night. 14 investigation calls. 2.2 min. Full lineage walked once so the next night never has to.", step: "fix", wait: 0 },
+      ],
+    },
+  };
+
+  function resetAspects() {
+    if (!aspects) return;
+    aspects.querySelectorAll("li").forEach(function (li) {
+      li.classList.remove("is-on");
+      li.querySelector("b").textContent = "—";
+    });
+  }
+
+  function lightAspect(keys) {
+    if (!aspects || !keys) return;
+    keys.split(",").forEach(function (key) {
+      var li = aspects.querySelector('[data-aspect="' + key + '"]');
+      if (!li) return;
+      li.classList.add("is-on");
+      li.querySelector("b").textContent = "written";
+    });
+  }
+
+  function setStep(name) {
+    if (!stepsEl || !name) return;
+    var reached = false;
+    stepsEl.querySelectorAll(".war__step").forEach(function (el) {
+      var id = el.getAttribute("data-step");
+      el.classList.remove("is-on");
+      if (id === name) {
+        el.classList.add("is-on");
+        el.classList.add("is-done");
+        reached = true;
+      } else if (!reached) {
+        el.classList.add("is-done");
+      }
+    });
+  }
+
+  function clearSteps() {
+    if (!stepsEl) return;
+    stepsEl.querySelectorAll(".war__step").forEach(function (el) {
+      el.classList.remove("is-on", "is-done");
+    });
+  }
+
+  function el(tag, cls, html) {
+    var n = document.createElement(tag);
+    if (cls) n.className = cls;
+    if (html != null) n.innerHTML = html;
+    return n;
+  }
+
+  function appendEvent(ev) {
+    var node;
+    if (ev.kind === "tool") {
+      node = el("div", "msg msg--tool");
+      node.innerHTML =
+        '<div class="msg__tool">' +
+        '<span class="msg__tool-name' +
+        (ev.tone === "memory" ? " is-memory" : "") +
+        (ev.tone === "write" ? " is-write" : "") +
+        '">' + ev.name + "</span>" +
+        '<span class="msg__tool-detail">' + ev.detail + "</span>" +
+        "</div>";
+    } else {
+      var role =
+        ev.kind === "pager" ? "pager" : ev.kind === "report" ? "report" : "agent";
+      node = el("div", "msg msg--" + role);
+      node.appendChild(el("div", "msg__who", ev.who));
+      node.appendChild(el("div", "msg__bubble", ev.text));
+    }
+    stream.appendChild(node);
+    requestAnimationFrame(function () { node.classList.add("on"); });
+    stream.scrollTop = stream.scrollHeight;
+    if (ev.step) setStep(ev.step);
+    if (ev.aspect) lightAspect(ev.aspect);
+  }
+
+  function stopPlay() {
+    playing = false;
+    if (timer) { clearTimeout(timer); timer = 0; }
+  }
+
+  function play(nightKey, instant) {
+    stopPlay();
+    var night = NIGHTS[nightKey] || NIGHTS["3"];
+    stream.innerHTML = "";
+    resetAspects();
+    clearSteps();
+    if (titleEl) titleEl.textContent = night.title;
+    if (clockEl) clockEl.textContent = night.clock;
+    if (statusEl) {
+      statusEl.textContent = instant ? "done" : "live";
+      statusEl.className = "war__status " + (instant ? "is-done" : "is-live");
+    }
+
+    if (instant) {
+      night.events.forEach(appendEvent);
+      if (statusEl) {
+        statusEl.textContent = "done";
+        statusEl.className = "war__status is-done";
+      }
+      return;
+    }
+
+    playing = true;
+    var i = 0;
+    function next() {
+      if (!playing) return;
+      if (i >= night.events.length) {
+        if (statusEl) {
+          statusEl.textContent = "done";
+          statusEl.className = "war__status is-done";
+        }
+        playing = false;
+        return;
+      }
+      var ev = night.events[i++];
+      appendEvent(ev);
+      timer = setTimeout(next, ev.wait || 480);
+    }
+    next();
+  }
+
+  document.querySelectorAll(".war__thread").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      document.querySelectorAll(".war__thread").forEach(function (b) {
+        b.classList.toggle("is-on", b === btn);
+      });
+      play(btn.getAttribute("data-night"), reduced);
+    });
+  });
+
+  var started = false;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && !started) {
+        started = true;
+        play("3", reduced);
+      }
+    });
+  }, { threshold: 0.25 });
+  io.observe(root);
 })();
 
 /* Sentinel journal */
