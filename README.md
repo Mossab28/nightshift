@@ -89,15 +89,18 @@ same graph inherits it.
 ## One incident, whole-graph immunity
 
 When a shift closes, Nightshift asks the graph one more question: *where else
-could this exact failure happen?* `find_datasets_with_failure_mode` plus
-lineage turns a single postmortem into guards on every structurally similar
-asset — datasets that never broke are immunized by an incident they never had.
+does this exact exposure exist?* `immunize_graph` finds every dataset carrying
+the same column — across platforms — and leaves an idempotent guard on each
+one. On the demo graph, one incident guarded 11 datasets over dbt, Looker,
+PowerBI, S3 and Postgres in a single call: datasets that never broke are
+immunized by an incident they never had.
 
 ## The Sentinel
 
-Between pages, a lightweight Sentinel watches the graph and trips the pager
-itself when an assertion Nightshift left behind starts failing — the loop
-closes without a human pager at all.
+Nobody presses the button. The Sentinel fingerprints the schema of every
+watched dataset on an interval; when a column moves — renamed, dropped,
+retyped — it names the drift and wakes the night shift itself
+(`trigger: sentinel`). The loop closes without a human pager at all.
 
 ## Quick start
 
