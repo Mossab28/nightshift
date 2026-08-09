@@ -14,7 +14,7 @@
     "fix_url": null,
     "incident_urn": "urn:li:incident:c9f3ffe7-dd9c-473a-88c2-ca2c182fc991",
     "guard_urn": null,
-    "minutes_to_root_cause": 10.0,
+    "minutes_to_root_cause": 2.2,
     "recorded_at_ms": 1786292128144
   },
   {
@@ -52,7 +52,7 @@
     "fix_url": null,
     "incident_urn": "urn:li:incident:045d5439-5fbe-48ec-b8d8-a553bde1f2c6",
     "guard_urn": null,
-    "minutes_to_root_cause": 3.0,
+    "minutes_to_root_cause": 1.1,
     "recorded_at_ms": 1786292416623
   },
   {

@@ -53,14 +53,22 @@ class AssertionsAPI:
         self._actor = actor
 
     def declare_column_guard(self, guard: ColumnGuard) -> str:
-        """Declare (or re-declare) an assertion watching one column's presence."""
+        """Declare (or re-declare) a column-presence assertion in Validations.
+
+        Scope is honest: the column must exist in the catalog schema. This does
+        not evaluate row values (all-null / sum=0). Those belong in dbt tests.
+        """
         info = models.AssertionInfoClass(
             type=models.AssertionTypeClass.DATASET,
             source=models.AssertionSourceClass(
                 type=models.AssertionSourceTypeClass.EXTERNAL,
                 created=_audit_stamp(self._actor),
             ),
-            description=guard.description,
+            description=(
+                f"[column presence] {guard.description}"
+                if not guard.description.startswith("[column presence]")
+                else guard.description
+            ),
             lastUpdated=_audit_stamp(self._actor),
             datasetAssertion=models.DatasetAssertionInfoClass(
                 dataset=guard.dataset_urn,
@@ -69,8 +77,9 @@ class AssertionsAPI:
                 fields=[_field_urn(guard.dataset_urn, guard.column)],
                 nativeType="nightshift_column_present",
                 logic=(
-                    f"column `{guard.column}` must exist on {guard.dataset_urn.split(',')[-2]} "
-                    "-- raised by Nightshift after an incident"
+                    f"column `{guard.column}` must exist on "
+                    f"{guard.dataset_urn.split(',')[-2]} "
+                    "(presence only; not a value-level check). Nightshift"
                 ),
             ),
         )
