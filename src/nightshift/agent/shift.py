@@ -93,6 +93,10 @@ def _mcp_servers() -> dict:
     env = {
         "DATAHUB_GMS_URL": os.environ.get("DATAHUB_GMS_URL", "http://localhost:8080"),
         "DATAHUB_GMS_TOKEN": os.environ.get("DATAHUB_GMS_TOKEN", ""),
+        "GITHUB_TOKEN": os.environ.get("GITHUB_TOKEN", ""),
+        "NIGHTSHIFT_FIX_REPO": os.environ.get(
+            "NIGHTSHIFT_FIX_REPO", "Mossab28/nightshift-dbt-demo"
+        ),
     }
     return {
         "datahub": {

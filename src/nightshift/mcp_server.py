@@ -200,6 +200,46 @@ def remember_incident(
 
 
 @mcp.tool()
+def open_fix_pr(
+    repo: str,
+    file_path: str,
+    old_snippet: str,
+    new_snippet: str,
+    title: str,
+    body: str,
+) -> str:
+    """Open a DRAFT pull request with the fix you derived from the catalog.
+
+    You never merge: the PR waits for a human review. `old_snippet` must be
+    copied exactly from the real file -- if it does not match, the call fails,
+    which is the point: fixes are derived, never invented. Use the repo from
+    the environment variable NIGHTSHIFT_FIX_REPO if the incident does not say
+    otherwise.
+    """
+    from .datahub.fixpr import FixPRError, open_fix_pr as _open
+
+    try:
+        pr = _open(
+            repo=repo,
+            file_path=file_path,
+            old_snippet=old_snippet,
+            new_snippet=new_snippet,
+            title=title,
+            body=body,
+        )
+    except FixPRError as exc:
+        return json.dumps({"opened": False, "error": str(exc)})
+    return json.dumps(
+        {
+            "opened": True,
+            "pr_url": pr.url,
+            "pr_number": pr.number,
+            "note": "Draft PR opened. A human reviews and merges; you do not.",
+        }
+    )
+
+
+@mcp.tool()
 def immunize_graph(column: str, failure_mode: str, reason: str, exclude_urns: list[str] | None = None) -> str:
     """Protect the WHOLE graph against tonight's failure shape, in one call.
 
