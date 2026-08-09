@@ -363,3 +363,37 @@
     });
   }
 })();
+
+/* Le journal du Sentinel : la bande raconte la détection en boucle. */
+(function () {
+  var log = document.getElementById('watch-log');
+  if (!log) return;
+  var LINES = [
+    { t: '03:12:41', ds: 'orders', msg: 'fingerprint ok', c: 'ok' },
+    { t: '03:14:41', ds: 'order_details', msg: 'fingerprint ok', c: 'ok' },
+    { t: '03:16:41', ds: 'fct_revenue', msg: 'fingerprint ok', c: 'ok' },
+    { t: '03:18:41', ds: 'orders', msg: 'column gone: order_total', c: 'drift' },
+    { t: '03:18:42', ds: '☽ nightshift', msg: 'waking the shift · trigger: sentinel', c: 'wake' },
+    { t: '03:20:07', ds: 'orders', msg: 'incident resolved · guard posted', c: 'done' }
+  ];
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function render(instant) {
+    log.innerHTML = '';
+    LINES.forEach(function (l, i) {
+      var d = document.createElement('div');
+      d.className = 'wl ' + l.c + (instant ? ' on' : '');
+      d.innerHTML = '<span class="t">' + l.t + '</span><span class="ds">' + l.ds +
+        '</span><span class="msg">' + l.msg + '</span>';
+      log.appendChild(d);
+      if (!instant) setTimeout(function () { d.classList.add('on'); }, 600 + i * 950);
+    });
+  }
+  if (reduced) { render(true); return; }
+  var seen = false;
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (e) {
+      if (e.isIntersecting && !seen) { seen = true; render(false); setInterval(function () { render(false); }, 14000); }
+    });
+  }, { threshold: 0.3 });
+  io.observe(log);
+})();

@@ -535,3 +535,55 @@ footer .moon-glyph { color: var(--moon); }
 @media (max-width: 720px) {
   .figure { flex-wrap: wrap; }
 }
+
+/* ------------------------------------------------- le journal du Sentinel */
+
+.watch {
+  margin-top: clamp(30px, 4vw, 48px);
+  background: var(--recess);
+  border: 1px solid var(--hair-soft);
+  border-radius: 14px;
+  box-shadow: inset 0 1px 0 var(--topline);
+  overflow: hidden;
+  max-width: 720px;
+}
+.watch-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--faint);
+  border-bottom: 1px solid var(--hair-soft);
+}
+.watch-head .pulse-badge { position: static; margin: 0; }
+.watch-log {
+  padding: 16px 18px 20px;
+  font-size: 13.5px;
+  line-height: 2.05;
+  min-height: 178px;
+}
+.watch-log .wl {
+  display: grid;
+  grid-template-columns: 74px 150px 1fr;
+  gap: 14px;
+  color: var(--dim);
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 420ms var(--ease-settle), transform 420ms var(--ease-settle);
+  white-space: nowrap;
+}
+.watch-log .wl.on { opacity: 1; transform: none; }
+.watch-log .wl .t { color: var(--faint); }
+.watch-log .wl .ds { color: var(--mid); }
+.watch-log .wl.ok .msg { color: var(--faint); }
+.watch-log .wl.drift { color: var(--alarm); }
+.watch-log .wl.drift .ds, .watch-log .wl.drift .t { color: var(--alarm); }
+.watch-log .wl.wake .msg { color: var(--moon); }
+.watch-log .wl.done .msg { color: var(--write); }
+@media (max-width: 620px) {
+  .watch-log .wl { grid-template-columns: 62px 1fr; }
+  .watch-log .wl .msg { grid-column: 2; }
+}
