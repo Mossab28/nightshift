@@ -340,10 +340,10 @@
       if (!en.isIntersecting) return;
       en.target.classList.add("on");
       io.unobserve(en.target);
-      if (en.target.classList.contains("nights")) runCounters(en.target);
+      if (en.target.querySelector("[data-count]")) runCounters(en.target);
     });
   }, { threshold: 0.25 });
-  document.querySelectorAll(".rv, .shift, .nights").forEach(function (el) { io.observe(el); });
+  document.querySelectorAll(".rv, .shift, .nights, .figure").forEach(function (el) { io.observe(el); });
 
   /* ------------------------------------------------- animated counters */
 
