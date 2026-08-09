@@ -100,7 +100,8 @@ same Validations marker from an incident they never had.
 ## The Sentinel
 
 Nobody presses the button. The Sentinel fingerprints the schema of every
-watched dataset on an interval; when a column moves (renamed, dropped, retyped). It names the drift and wakes the night shift itself
+watched dataset on an interval. When a column moves (renamed, dropped, or
+retyped), it names the drift and wakes the night shift itself
 (`trigger: sentinel`). The loop closes without a human pager at all.
 
 ## Quick start
