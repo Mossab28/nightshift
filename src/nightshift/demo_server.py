@@ -73,13 +73,30 @@ def do_break() -> JSONResponse:
     with STATE.lock:
         if STATE.planted:
             return JSONResponse({"error": "already broken -- run the shift"}, 409)
-    planted = break_pipeline(
-        _graph(),
-        upstream_urn=UPSTREAM,
-        old_column=OLD_COLUMN,
-        new_column=NEW_COLUMN,
-        victim_urn=VICTIM,
-    )
+    from .scenario import PlantedIncident, ScenarioError
+
+    try:
+        planted = break_pipeline(
+            _graph(),
+            upstream_urn=UPSTREAM,
+            old_column=OLD_COLUMN,
+            new_column=NEW_COLUMN,
+            victim_urn=VICTIM,
+        )
+    except ScenarioError:
+        # The graph is already broken (a previous session left it so). Adopt
+        # that break as ours instead of erroring at the judge.
+        planted = PlantedIncident(
+            upstream_urn=UPSTREAM,
+            old_column=OLD_COLUMN,
+            new_column=NEW_COLUMN,
+            victim_urn=VICTIM,
+            symptom=(
+                "The revenue dashboard is showing zero for last week. It was fine "
+                "at yesterday's close; it broke overnight. Finance noticed before "
+                "we did."
+            ),
+        )
     with STATE.lock:
         STATE.planted = asdict(planted)
         STATE.shift_events = []
