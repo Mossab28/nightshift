@@ -201,27 +201,32 @@ def remember_incident(
 
 @mcp.tool()
 def open_fix_pr(
-    repo: str,
-    file_path: str,
     old_snippet: str,
     new_snippet: str,
     title: str,
     body: str,
+    repo: str | None = None,
+    file_path: str | None = None,
 ) -> str:
     """Open a DRAFT pull request with the fix you derived from the catalog.
 
     You never merge: the PR waits for a human review. `old_snippet` must be
     copied exactly from the real file -- if it does not match, the call fails,
-    which is the point: fixes are derived, never invented. Use the repo from
-    the environment variable NIGHTSHIFT_FIX_REPO if the incident does not say
-    otherwise.
+    which is the point: fixes are derived, never invented.
+
+    Leave `repo` and `file_path` empty unless you know them for certain: the
+    server fills them from NIGHTSHIFT_FIX_REPO / NIGHTSHIFT_FIX_PATH and will
+    also try the usual dbt layouts (`models/analytics/...`) if you guess wrong.
+    Never pass the literal string "NIGHTSHIFT_FIX_REPO".
     """
+    import os
+
     from .datahub.fixpr import FixPRError, open_fix_pr as _open
 
     try:
         pr = _open(
-            repo=repo,
-            file_path=file_path,
+            repo=repo or os.environ.get("NIGHTSHIFT_FIX_REPO"),
+            file_path=file_path or os.environ.get("NIGHTSHIFT_FIX_PATH"),
             old_snippet=old_snippet,
             new_snippet=new_snippet,
             title=title,

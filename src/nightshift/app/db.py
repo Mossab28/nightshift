@@ -61,7 +61,7 @@ class Workspace(Base):
     gms_token_encrypted: Mapped[str] = mapped_column(Text, default="")
     sentinel_enabled: Mapped[bool] = mapped_column(Boolean, default=False)
     sentinel_interval_s: Mapped[int] = mapped_column(Integer, default=120)
-    shift_budget_usd: Mapped[float] = mapped_column(Float, default=1.5)
+    shift_budget_usd: Mapped[float] = mapped_column(Float, default=3.0)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime, default=_utcnow)
 
     owner: Mapped[User] = relationship(back_populates="workspaces")

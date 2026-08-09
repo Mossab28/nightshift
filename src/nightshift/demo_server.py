@@ -147,7 +147,7 @@ def _run_shift_thread(symptom: str, entry_point: str) -> None:
             STATE.shift_conclusion = f"shift failed: {exc}"
 
 
-#: Hard cap on agent runs for the whole demo deployment. At ~$1.5 per shift
+#: Hard cap on agent runs for the whole demo deployment. At ~$3 per shift
 #: this keeps worst-case spend far under the key's budget.
 MAX_NIGHTS = int(__import__("os").environ.get("NIGHTSHIFT_MAX_NIGHTS", "25"))
 
