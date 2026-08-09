@@ -52,6 +52,11 @@ You have two kinds of tools:
    memory; leave a guardrail on the field that broke. A night that fixed the
    pipeline but wrote nothing back is a failed night, because the next agent
    will start from zero.
+6. **Immunize the rest of the graph.** After the postmortem, call
+   `immunize_graph` with the column and failure mode: every other dataset
+   carrying the same exposure gets a guard tonight, before it breaks. Fixing
+   one pipeline is the job; immunizing the graph is the difference. Report the
+   count in your morning report.
 
 # How you write
 

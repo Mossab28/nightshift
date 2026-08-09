@@ -199,6 +199,40 @@ def remember_incident(
     )
 
 
+@mcp.tool()
+def immunize_graph(column: str, failure_mode: str, reason: str, exclude_urns: list[str] | None = None) -> str:
+    """Protect the WHOLE graph against tonight's failure shape, in one call.
+
+    Finds every dataset carrying the same column and leaves a guard assertion
+    on each one that is not already guarded. Call this after remember_incident:
+    fixing one pipeline is the job, immunizing the rest of the graph is the
+    difference. Idempotent -- safe to call on every incident.
+    """
+    from .immunize import immunize
+
+    _services()  # ensure the shared graph exists
+    report = immunize(
+        _graph,
+        column=column,
+        failure_mode=failure_mode,
+        reason=reason,
+        exclude=set(exclude_urns or []),
+    )
+    return json.dumps(
+        {
+            "column": report.column,
+            "exposed_datasets": len(report.candidates),
+            "newly_guarded": report.guarded,
+            "already_guarded": report.already_guarded,
+            "note": (
+                f"{len(report.guarded)} dataset(s) are now protected against a "
+                f"recurrence of `{failure_mode}` anywhere in the graph."
+            ),
+        },
+        indent=2,
+    )
+
+
 def main() -> Any:
     """Entry point for `nightshift-mcp`."""
     return mcp.run()
