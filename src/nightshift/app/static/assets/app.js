@@ -1,7 +1,7 @@
 /* Nightshift SPA — vanilla JS, hash routing, no dependencies. */
 "use strict";
 
-const app = document.getElementById("app");
+const app = typeof document === "undefined" ? null : document.getElementById("app");
 
 const state = {
   email: null,
@@ -346,6 +346,144 @@ async function viewShifts() {
     : EMPTY_SHIFTS;
 }
 
+/* --------------------------------------------------------------- evidence */
+/* Lineage-path reconstruction from a finished shift: URNs cited in the
+   events + conclusion, ordered upstream→downstream via the workspace
+   postmortem memory when available, else by role/appearance. Pure — no DOM. */
+
+function nsParseDatasetUrn(urn) {
+  const m = String(urn || "").match(/^urn:li:dataset:\(urn:li:dataPlatform:([^,]+),([^,]+),[^)]*\)$/);
+  if (!m) return null;
+  const segs = m[2].split(".");
+  return { urn, platform: m[1], name: m[2], short: segs[segs.length - 1] };
+}
+
+function nsFindDatasetUrns(text) {
+  return String(text || "").match(/urn:li:dataset:\([^)]*\)/g) || [];
+}
+
+/* value of key=... in an event detail string; URN values contain commas
+   inside parens, so match the full urn form first. */
+function nsEventValue(detail, key) {
+  const m = String(detail || "").match(
+    new RegExp(key + "=(urn:li:dataset:\\([^)]*\\)|urn:[^,\\s]+|[^,\\s]+)"));
+  return m ? m[1] : null;
+}
+
+function nsBuildLineage(shift, memory) {
+  const events = shift.events || [];
+  const nodes = [];
+  const add = (u) => {
+    if (nodes.some((n) => n.urn === u)) return;
+    const p = nsParseDatasetUrn(u);
+    if (p) nodes.push(p);
+  };
+  events.forEach((ev) => nsFindDatasetUrns(ev.detail).forEach(add));
+  nsFindDatasetUrns(shift.conclusion).forEach(add);
+  if (shift.entry_point_urn) add(shift.entry_point_urn);
+  if (nodes.length < 2) return null;
+
+  const victim = nodes.some((n) => n.urn === shift.entry_point_urn)
+    ? shift.entry_point_urn : null;
+  let upstream = null;
+  let column = null;
+  const guards = new Map(); // urn -> column guarded
+  events.forEach((ev) => {
+    const l = ev.label || "", d = ev.detail || "";
+    if (l.includes("remember")) upstream = nsEventValue(d, "upstream_urn") || upstream;
+    if (l.includes("guard_column")) {
+      const gu = nsEventValue(d, "dataset_urn");
+      if (gu) guards.set(gu, nsEventValue(d, "column") || "");
+    }
+  });
+
+  // Postmortem memory: lineage_path gives the true upstream→downstream order.
+  let path = null;
+  if (memory && Array.isArray(memory.assets)) {
+    for (const a of memory.assets) {
+      for (const p of a.postmortems || []) {
+        const lp = Array.isArray(p.lineage_path) ? p.lineage_path : null;
+        if (!lp || !lp.some((u) => nodes.some((n) => n.urn === u))) continue;
+        if (!path || a.dataset_urn === victim) {
+          path = lp;
+          upstream = p.upstream_urn || upstream;
+          column = p.changed_field || column;
+        }
+      }
+    }
+  }
+  const appear = new Map(nodes.map((n, i) => [n.urn, i]));
+  if (path) {
+    const idx = (n) => { const i = path.indexOf(n.urn); return i < 0 ? path.length + appear.get(n.urn) : i; };
+    nodes.sort((a, b) => idx(a) - idx(b));
+  } else {
+    // heuristic: culprit upstream first, victim last, rest in appearance order
+    const rank = (n) => n.urn === upstream ? 0 : n.urn === victim ? 2 : 1;
+    nodes.sort((a, b) => rank(a) - rank(b) || appear.get(a.urn) - appear.get(b.urn));
+  }
+
+  const culprit = upstream && nodes.some((n) => n.urn === upstream) ? upstream : nodes[0].urn;
+  if (!column && guards.size) column = guards.values().next().value || null;
+  return nodes.map((n) => ({
+    ...n,
+    role: n.urn === culprit ? "culprit" : n.urn === victim ? "victim" : "mid",
+    guarded: guards.has(n.urn),
+    column: n.urn === culprit ? column : null,
+  }));
+}
+
+/* Inline SVG: horizontal chain of pills with arrows. */
+function nsEvidenceSVG(nodes) {
+  const CH = 7.3, PADX = 16, GAP = 54, H = 108, PILL_Y = 30, PILL_H = 34;
+  const midY = PILL_Y + PILL_H / 2;
+  const widths = nodes.map((n) =>
+    Math.max(84, Math.max(n.short.length, n.platform.length) * CH + PADX * 2));
+  const total = widths.reduce((a, b) => a + b, 0) + GAP * (nodes.length - 1) + 8;
+  let x = 4;
+  const parts = [];
+  nodes.forEach((n, i) => {
+    const w = widths[i], cx = x + w / 2;
+    const culprit = n.role === "culprit";
+    const stroke = culprit ? "#ff6b6b" : "rgba(255,255,255,0.18)";
+    const nameFill = culprit ? "#ff6b6b" : "#e8e8e8";
+    if (n.guarded) {
+      parts.push(`<rect x="${x - 4}" y="${PILL_Y - 4}" width="${w + 8}" height="${PILL_H + 8}"
+        rx="21" fill="none" stroke="#5fd29a" stroke-width="1.5" stroke-dasharray="3 3"/>`);
+    }
+    parts.push(`<text x="${cx}" y="${PILL_Y - 10}" text-anchor="middle"
+      font-family="var(--mono)" font-size="10" letter-spacing="0.08em"
+      fill="${culprit ? "rgba(255,107,107,0.75)" : "#6a6a6a"}">${esc(n.platform.toUpperCase())}</text>`);
+    parts.push(`<rect x="${x}" y="${PILL_Y}" width="${w}" height="${PILL_H}" rx="17"
+      fill="${culprit ? "rgba(255,107,107,0.08)" : "#101010"}"
+      stroke="${stroke}" stroke-width="1"/>`);
+    parts.push(`<text x="${cx}" y="${midY + 4}" text-anchor="middle"
+      font-family="var(--mono)" font-size="12" font-weight="600"
+      fill="${nameFill}">${esc(n.short)}</text>`);
+    if (n.column) {
+      parts.push(`<text x="${cx}" y="${PILL_Y + PILL_H + 18}" text-anchor="middle"
+        font-family="var(--mono)" font-size="10.5" fill="#ff6b6b">&#9888; ${esc(n.column)}</text>`);
+    } else if (n.role === "victim") {
+      parts.push(`<text x="${cx}" y="${PILL_Y + PILL_H + 18}" text-anchor="middle"
+        font-family="var(--mono)" font-size="10" letter-spacing="0.1em" fill="#9a9a9a">IMPACTED</text>`);
+    } else if (n.guarded) {
+      parts.push(`<text x="${cx}" y="${PILL_Y + PILL_H + 18}" text-anchor="middle"
+        font-family="var(--mono)" font-size="10" letter-spacing="0.1em" fill="#5fd29a">GUARDED</text>`);
+    }
+    if (i < nodes.length - 1) {
+      const x1 = x + w + 6, x2 = x + w + GAP - 8;
+      parts.push(`<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}"
+        stroke="rgba(255,255,255,0.25)" stroke-width="1" marker-end="url(#ns-arrow)"/>`);
+    }
+    x += w + GAP;
+  });
+  return `<svg width="${total}" height="${H}" viewBox="0 0 ${total} ${H}"
+    role="img" aria-label="Lineage path" style="display:block">
+    <defs><marker id="ns-arrow" viewBox="0 0 8 8" refX="7" refY="4"
+      markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L8 4 L0 8 z" fill="rgba(255,255,255,0.35)"/></marker></defs>
+    ${parts.join("")}</svg>`;
+}
+
 /* --------------------------------------------------------------- war room */
 
 async function viewWarroom(shiftId) {
@@ -361,6 +499,10 @@ async function viewWarroom(shiftId) {
     <div class="timeline" id="timeline"></div>
     <p class="working-note" id="working" hidden>
       <span class="dotpulse">&#9789;</span> The night shift is working. This page follows along.</p>
+    <div class="plate evidence" id="evidence" hidden>
+      <div class="head">EVIDENCE &mdash; LINEAGE PATH</div>
+      <div class="evidence-scroll"></div>
+    </div>
     <div class="plate conclusion" id="conclusion" hidden>
       <div class="head">MORNING REPORT</div>
       <div class="body"></div>
@@ -369,6 +511,18 @@ async function viewWarroom(shiftId) {
   shell("shifts", node);
 
   let lastCount = -1;
+  let evidenceTried = false;
+  const maybeEvidence = async (s) => {
+    if (evidenceTried || s.status !== "done") return;
+    evidenceTried = true;
+    let memory = null;
+    try { memory = await api(`/workspaces/${state.wsId}/memory`); } catch {}
+    const lineage = nsBuildLineage(s, memory);
+    if (!lineage) return;
+    const box = node.querySelector("#evidence");
+    box.querySelector(".evidence-scroll").innerHTML = nsEvidenceSVG(lineage);
+    box.hidden = false;
+  };
   const render = (s) => {
     node.querySelector("#symptom").textContent = s.symptom;
     node.querySelector("#urn").textContent = s.entry_point_urn || "";
@@ -401,6 +555,7 @@ async function viewWarroom(shiftId) {
       }
       conc.querySelector(".body").textContent = s.conclusion;
     }
+    if (!running) maybeEvidence(s);
     return running;
   };
 
@@ -647,5 +802,7 @@ async function route() {
   return viewDashboard();
 }
 
-window.addEventListener("hashchange", route);
-route();
+if (typeof window !== "undefined") {
+  window.addEventListener("hashchange", route);
+  route();
+}
