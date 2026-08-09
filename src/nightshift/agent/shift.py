@@ -48,6 +48,25 @@ class ShiftReport:
             return 0.0
         return (self.ended_at - self.started_at).total_seconds() / 60
 
+    def to_dict(self) -> dict:
+        return {
+            "symptom": self.symptom,
+            "entry_point_urn": self.entry_point_urn,
+            "started_at": self.started_at.isoformat(timespec="seconds"),
+            "ended_at": self.ended_at.isoformat(timespec="seconds") if self.ended_at else None,
+            "duration_minutes": round(self.duration_minutes, 2),
+            "conclusion": self.conclusion,
+            "events": [
+                {
+                    "at": e.at.isoformat(timespec="seconds"),
+                    "kind": e.kind,
+                    "label": e.label,
+                    "detail": e.detail,
+                }
+                for e in self.events
+            ],
+        }
+
     def to_markdown(self) -> str:
         lines = [
             "# Nightshift -- morning report",

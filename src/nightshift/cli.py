@@ -142,6 +142,7 @@ def oncall(
     stamp = report.started_at.strftime("%Y%m%d-%H%M%S")
     out = REPORTS_DIR / f"shift-{stamp}.md"
     out.write_text(report.to_markdown())
+    (REPORTS_DIR / f"shift-{stamp}.json").write_text(json.dumps(report.to_dict(), indent=2))
     console.print(f"\nMorning report written to [bold]{out}[/bold]")
 
 
@@ -153,6 +154,19 @@ def report() -> None:
         console.print("No shift has run yet. `nightshift oncall` to start one.")
         raise typer.Exit(1)
     console.print(reports[-1].read_text())
+
+
+@app.command("war-room")
+def war_room() -> None:
+    """Render the latest shift as a dark, single-file war-room page."""
+    from .warroom import render_file
+
+    shifts = sorted(REPORTS_DIR.glob("shift-*.json")) if REPORTS_DIR.exists() else []
+    if not shifts:
+        console.print("No shift has run yet. `nightshift oncall` to start one.")
+        raise typer.Exit(1)
+    out = render_file(shifts[-1])
+    console.print(f"War room rendered: [bold]{out}[/bold]")
 
 
 @app.command()
