@@ -108,7 +108,12 @@ def _mcp_servers() -> dict:
     }
 
 
-async def _run(symptom: str, entry_point_urn: str, console: Console) -> ShiftReport:
+async def _run(
+    symptom: str,
+    entry_point_urn: str,
+    console: Console,
+    on_event=None,
+) -> ShiftReport:
     from claude_agent_sdk import (
         AssistantMessage,
         ClaudeAgentOptions,
@@ -147,14 +152,16 @@ async def _run(symptom: str, entry_point_urn: str, console: Console) -> ShiftRep
                 if isinstance(block, ToolUseBlock):
                     label = block.name.replace("mcp__", "").replace("__", " / ")
                     detail = _summarize_input(block.input)
-                    report.events.append(
-                        ShiftEvent(at=now, kind="tool", label=label, detail=detail)
-                    )
+                    event = ShiftEvent(at=now, kind="tool", label=label, detail=detail)
+                    report.events.append(event)
+                    if on_event:
+                        on_event(event)
                     console.print(f"  [cyan]{label}[/cyan] [dim]{detail}[/dim]")
                 elif isinstance(block, TextBlock) and block.text.strip():
-                    report.events.append(
-                        ShiftEvent(at=now, kind="thought", label="", detail=block.text)
-                    )
+                    event = ShiftEvent(at=now, kind="thought", label="", detail=block.text)
+                    report.events.append(event)
+                    if on_event:
+                        on_event(event)
                     console.print(f"[white]{block.text.strip()}[/white]\n")
         elif isinstance(message, ResultMessage):
             report.conclusion = message.result or ""
