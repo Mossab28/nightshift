@@ -20,12 +20,11 @@
 </header>
 
 <main>
-  <section class="section" id="problem">
+  <section class="section band" id="problem">
     <div class="rv">
-      <p class="eyebrow"><em>2:47 AM</em> · the problem</p>
-      <p class="lede">An upstream team renames a column and tells nobody.
-      By morning the revenue dashboard reads zero —
-      and <span class="who">finance notices before you do</span>.</p>
+      <p class="giant mono" aria-hidden="true">2:47<span class="giant-am">AM</span></p>
+      <p class="pair">A column renamed upstream. Nobody told anyone.</p>
+      <p class="pair dim">The dashboard reads zero. <span class="who">Finance saw it first.</span></p>
     </div>
     <div class="slack rv" style="transition-delay:120ms">
       <div class="avatar" aria-hidden="true">FN</div>
@@ -39,35 +38,34 @@
   <section class="section" id="shift">
     <div class="rv">
       <p class="eyebrow">The shift</p>
-      <p class="lede">Nightshift takes the pager and works the incident
-      the way a senior engineer would — then does the one thing
-      humans never do at 4am: <strong>it writes down what it learned, inside the graph.</strong></p>
+      <p class="pair">Nightshift takes the pager.</p>
+      <p class="pair dim">And writes what it learned <strong>into the graph.</strong></p>
     </div>
     <div class="shift" role="list">
       <div class="step" role="listitem" style="--step-c:#b98aff; --step-d:0ms">
         <div class="dot"></div>
         <h3>Recall</h3>
-        <p>Search the graph's memory for this failure mode.</p>
+        <p>Ask the graph first.</p>
       </div>
       <div class="step" role="listitem" style="--step-c:#6ea8ff; --step-d:120ms">
         <div class="dot"></div>
         <h3>Lineage</h3>
-        <p>Walk upstream from the broken dashboard.</p>
+        <p>Walk upstream.</p>
       </div>
       <div class="step" role="listitem" style="--step-c:#6ea8ff; --step-d:240ms">
         <div class="dot"></div>
         <h3>Diagnose</h3>
-        <p>Find the renamed column, prove it.</p>
+        <p>One cause, proven.</p>
       </div>
       <div class="step" role="listitem" style="--step-c:#e8e8e8; --step-d:360ms">
         <div class="dot"></div>
         <h3>Fix</h3>
-        <p>Repair the mapping, backfill, verify.</p>
+        <p>A PR, not a promise.</p>
       </div>
       <div class="step" role="listitem" style="--step-c:#5fd29a; --step-d:480ms">
         <div class="dot"></div>
         <h3>Remember</h3>
-        <p>Postmortem, memory, tag, and a guard on the column.</p>
+        <p>The graph learns.</p>
       </div>
     </div>
   </section>
@@ -75,31 +73,13 @@
   <section class="section" id="numbers">
     <div class="rv">
       <p class="eyebrow">The graph remembers</p>
-      <p class="lede">Same break, two nights apart. Real runs, real numbers.</p>
+      <p class="pair">Same break, two nights apart.</p>
     </div>
-    <div class="nights">
-      <div class="night rv" style="transition-delay:100ms">
-        <p class="label">Night 1 · investigation</p>
-        <div class="metric">
-          <p class="val"><span data-count="14">0</span><span class="unit">calls</span></p>
-          <p class="what">graph queries to find the cause</p>
-        </div>
-        <div class="metric">
-          <p class="val"><span data-count="2.2">0.0</span><span class="unit">min</span></p>
-          <p class="what">to diagnosis</p>
-        </div>
-      </div>
-      <div class="night learned rv" style="transition-delay:220ms">
-        <p class="label">Night N · lookup</p>
-        <div class="metric">
-          <p class="val"><span data-count="5">0</span><span class="unit">calls</span></p>
-          <p class="what">memory answers first</p>
-        </div>
-        <div class="metric">
-          <p class="val"><span data-count="1.1">0.0</span><span class="unit">min</span></p>
-          <p class="what">to diagnosis</p>
-        </div>
-      </div>
+    <div class="figure rv mono" style="transition-delay:120ms" aria-label="14 investigation calls on night one, 5 on night N">
+      <span class="fig-n" data-count="14">0</span><span class="fig-arrow">→</span><span class="fig-n learned" data-count="5">0</span><span class="fig-unit">calls</span>
+    </div>
+    <div class="fig-sub rv mono" style="transition-delay:220ms">
+      <span>2.2</span><span class="fig-arrow-s">→</span><span class="learned">1.1</span><span class="fig-unit-s">min to root cause</span>
     </div>
     <p class="lookup-line rv" style="transition-delay:340ms">An investigation becomes a <em>lookup</em>.</p>
   </section>
@@ -109,8 +89,7 @@
       <p class="eyebrow">The Sentinel</p>
       <div class="sentinel-row">
         <div class="pulse-badge" aria-hidden="true"></div>
-        <p><strong>Nobody presses the button.</strong> The Sentinel notices,
-        and wakes the shift itself. Know before they do.</p>
+        <p><strong>Nobody presses the button.</strong><br>The Sentinel notices. Know before they do.</p>
       </div>
     </div>
   </section>
