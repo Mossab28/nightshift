@@ -40,18 +40,18 @@ pager goes off, a shift:
 5. **Leaves the graph smarter than it found it** — incident opened *and
    resolved in DataHub*, a postmortem written into the dataset's
    documentation for humans, a machine-readable memory and a searchable
-   failure-mode tag for the next agent, and an external assertion guarding
-   the column that broke — visible in the Validations tab.
+   failure-mode tag for the next agent, and a column-presence assertion in
+   the Validations tab (value-level not-null checks stay a dbt/CI follow-up).
 
 The second time a pipeline breaks the same way, Nightshift does not
 investigate. It remembers. **An investigation becomes a lookup.**
 
 **Measured on our demo graph (DataHub's showcase-ecommerce, 1,000+ entities):**
 
-| | Night 1 (cold) | Night N (memory) |
+| | Night 1 (cold) | Night 3 (memory) |
 |---|---|---|
 | Investigation tool calls | 14 | 5 — incl. exactly the 2 reads memory prescribed |
-| Time to root cause | 2.2 min | 1.1 min |
+| Shift wall-clock | 2.2 min | 1.1 min |
 | Lineage re-walked | full path | none |
 
 By night 3 the agent recognized a recurrence, reframed the incident from a SQL
@@ -94,7 +94,9 @@ every run — literally.
   night. That failure taught the runbook its sharpest rule: **respect the
   timeline** — an old flaw explains a chronic problem, never a fresh break.
 - **A packaging bug in `acryl-datahub` 1.7.0** breaks `datahub datapack` from
-  PyPI (missing resource file). Found while building, reported upstream.
+  PyPI (missing resource file). Found while building, reported upstream as
+  [#19028](https://github.com/datahub-project/datahub/issues/19028). Workaround
+  in the README quick start.
 
 ## Accomplishments we're proud of
 
