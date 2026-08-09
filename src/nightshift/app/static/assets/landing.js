@@ -1,7 +1,5 @@
-/* Nightshift landing — the constellation that learns.
-   One canvas, one 22s loop, two cycles of the same break:
-   cycle A the shift investigates and repairs; a green ring (the guard) stays.
-   cycle B the same break starts — and is caught instantly. The animation is the pitch. */
+/* Nightshift landing — Murmell motion laws, Nightshift sky.
+   The constellation is the pitch: break → heal → remember → catch. */
 
 (function () {
   "use strict";
@@ -11,9 +9,22 @@
     red: [255, 107, 107],
     green: [95, 210, 154],
     violet: [185, 138, 255],
+    moon: [255, 215, 110],
+    frost: [180, 200, 255],
   };
 
   var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  /* ------------------------------------------------ nav lift */
+
+  var nav = document.getElementById("nav");
+  if (nav) {
+    var onScroll = function () {
+      nav.classList.toggle("is-lifted", window.scrollY > 12);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+  }
 
   /* ------------------------------------------------ deterministic graph */
 
@@ -26,19 +37,17 @@
     };
   }
 
-  var rnd = mulberry32(2047); // 2:47am
-  var N = 34;
+  var rnd = mulberry32(2047);
+  var N = 38;
   var nodes = [];
-  var edges = []; // {a, b} directed a -> b (a upstream)
+  var edges = [];
 
-  // Organic layout: nodes scattered with a loose left-to-right flow,
-  // each connecting to 1-2 nearby upstream nodes.
   for (var i = 0; i < N; i++) {
     var fx = 0.06 + 0.88 * (i / (N - 1));
     nodes.push({
       x: fx + (rnd() - 0.5) * 0.12,
-      y: 0.14 + 0.72 * rnd(),
-      r: 1.4 + rnd() * 1.6,
+      y: 0.12 + 0.62 * rnd(),
+      r: 1.5 + rnd() * 1.8,
       phase: rnd() * Math.PI * 2,
       speed: 0.15 + rnd() * 0.2,
       amp: 2.5 + rnd() * 3,
@@ -51,13 +60,12 @@
       cands.push({ k: k, d: dx * dx + dy * dy });
     }
     cands.sort(function (p, q) { return p.d - q.d; });
-    var links = 1 + (rnd() < 0.4 ? 1 : 0);
+    var links = 1 + (rnd() < 0.45 ? 1 : 0);
     for (var l = 0; l < links && l < cands.length; l++) {
       edges.push({ a: cands[l].k, b: j });
     }
   }
 
-  // The break: an upstream node with a real downstream tree.
   var ORIGIN = 6;
   var depth = {};
   depth[ORIGIN] = 0;
@@ -80,25 +88,27 @@
   });
 
   /* --------------------------------------------------------- timeline */
-  // Master loop: 22s.
-  //  cycle A: 0.0 calm | 2.5 break | red wave to depth 3 | 4.8 violet pulse
-  //           5.8 green retrace heals deepest-first | 8.2 ring lands | calm
-  //  cycle B: 14.0 same break | green catches it in under a second | calm
-  //  21.0-22.0 ring dissolves so the loop restarts clean.
   var LOOP = 22;
+  var CAPTIONS = [
+    { t: 0.0, text: "The graph is calm." },
+    { t: 2.4, text: "Silent rename upstream." },
+    { t: 4.6, text: "Memory wakes. Violet first." },
+    { t: 5.8, text: "The shift heals the path." },
+    { t: 8.2, text: "A guard lands on the origin." },
+    { t: 13.8, text: "Same break. Night two." },
+    { t: 14.4, text: "Caught. An investigation became a lookup." },
+    { t: 18.0, text: "The graph is smarter than tonight found it." },
+  ];
 
   function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
   function ease(v) { v = clamp01(v); return v * v * (3 - 2 * v); }
 
-  // How red a node of given depth is at loop-time t. Returns 0..1.
   function redness(t, d) {
     if (d === undefined) return 0;
     var r = 0;
-    // cycle A: wave leaves origin at 2.5, ~0.5s per hop, healed by green retrace
     var hitA = 2.5 + d * 0.5;
-    var healA = 5.8 + (maxDepth - d) * 0.55; // deepest heals first, origin last
+    var healA = 5.8 + (maxDepth - d) * 0.55;
     r = Math.max(r, ease((t - hitA) / 0.35) * (1 - ease((t - healA) / 0.5)));
-    // cycle B: wave starts at 14.0 but green catches it almost immediately
     var hitB = 14.0 + d * 0.5;
     var healB = 14.35 + d * 0.12;
     r = Math.max(r, ease((t - hitB) / 0.25) * (1 - ease((t - healB) / 0.3)));
@@ -115,19 +125,30 @@
     return clamp01(g);
   }
 
-  function violet(t) { // memory pulse near origin, cycle A + a flicker in B
+  function violet(t) {
     var a = ease((t - 4.8) / 0.4) * (1 - ease((t - 6.2) / 0.6));
     var b = ease((t - 14.15) / 0.15) * (1 - ease((t - 14.9) / 0.3));
     return Math.max(a, b);
   }
 
-  function ringAlpha(t) { // the guard: lands at 8.2, persists, dissolves 21-22
+  function ringAlpha(t) {
     return ease((t - 8.2) / 0.8) * (1 - ease((t - 21) / 1));
+  }
+
+  function captionAt(t) {
+    var text = CAPTIONS[0].text;
+    for (var i = 0; i < CAPTIONS.length; i++) {
+      if (t >= CAPTIONS[i].t) text = CAPTIONS[i].text;
+    }
+    return text;
   }
 
   /* --------------------------------------------------------- rendering */
 
   var canvas = document.getElementById("sky");
+  var captionEl = document.getElementById("sky-caption");
+  var lastCaption = "";
+  if (!canvas) return;
   var ctx = canvas.getContext("2d");
   var W = 0, H = 0, DPR = 1;
 
@@ -156,32 +177,69 @@
       .map(Math.round);
   }
 
+  function drawMoon() {
+    var mx = W * 0.82;
+    var my = H * 0.18;
+    var r = Math.min(W, H) * 0.09;
+    var g = ctx.createRadialGradient(mx, my, r * 0.2, mx, my, r * 3.2);
+    g.addColorStop(0, rgba(COLORS.moon, 0.22));
+    g.addColorStop(0.35, rgba(COLORS.moon, 0.08));
+    g.addColorStop(1, rgba(COLORS.moon, 0));
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(mx, my, r * 3.2, 0, Math.PI * 2);
+    ctx.fill();
+    // Crescent via clip: full disc, then punch with black void (same as paper).
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(mx, my, r, 0, Math.PI * 2);
+    ctx.clip();
+    ctx.fillStyle = rgba(COLORS.moon, 0.92);
+    ctx.shadowColor = rgba(COLORS.moon, 0.7);
+    ctx.shadowBlur = 28;
+    ctx.fillRect(mx - r - 4, my - r - 4, r * 2 + 8, r * 2 + 8);
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    ctx.arc(mx + r * 0.42, my - r * 0.08, r * 0.9, 0, Math.PI * 2);
+    ctx.fillStyle = "#000000";
+    ctx.fill();
+    ctx.restore();
+  }
+
   function draw(now) {
     var t = (now / 1000) % LOOP;
     var breath = 0.5 + 0.5 * Math.sin(now / 1000 * 0.5);
     ctx.clearRect(0, 0, W, H);
 
+    // faint star dust
+    ctx.fillStyle = "rgba(255,255,255,0.035)";
+    for (var s = 0; s < 48; s++) {
+      var sx = ((s * 97) % 1000) / 1000 * W;
+      var sy = ((s * 53) % 1000) / 1000 * H * 0.75;
+      ctx.fillRect(sx, sy, 1.2, 1.2);
+    }
+
+    drawMoon();
+
     var P = nodes.map(function (n) { return pos(n, now / 1000); });
 
-    // edges
     edges.forEach(function (e) {
       var ra = Math.max(redness(t, depth[e.a]), redness(t, depth[e.b]) * 0.7);
       var ga = Math.max(greenness(t, depth[e.a]), greenness(t, depth[e.b])) * 0.8;
-      var base = 0.05 + breath * 0.02;
+      var base = 0.06 + breath * 0.03;
       ctx.beginPath();
       ctx.moveTo(P[e.a].x, P[e.a].y);
       ctx.lineTo(P[e.b].x, P[e.b].y);
       ctx.lineWidth = 1;
       if (ra > 0.02 || ga > 0.02) {
         var c = ga > ra ? COLORS.green : COLORS.red;
-        ctx.strokeStyle = rgba(c, base + Math.max(ra, ga) * 0.5);
+        ctx.strokeStyle = rgba(c, base + Math.max(ra, ga) * 0.55);
       } else {
-        ctx.strokeStyle = "rgba(255,255,255," + base + ")";
+        ctx.strokeStyle = "rgba(200,214,255," + (base + 0.02) + ")";
       }
       ctx.stroke();
     });
 
-    // traveling pulses along affected edges (red downstream / green back up)
     affectedEdges.forEach(function (e) {
       var d = depth[e.a];
       [
@@ -195,86 +253,94 @@
         var x = P[p.from].x + (P[p.to].x - P[p.from].x) * u;
         var y = P[p.from].y + (P[p.to].y - P[p.from].y) * u;
         ctx.beginPath();
-        ctx.arc(x, y, 2.2, 0, Math.PI * 2);
-        ctx.fillStyle = rgba(p.c, 0.9);
-        ctx.shadowColor = rgba(p.c, 0.8);
-        ctx.shadowBlur = 8;
+        ctx.arc(x, y, 2.4, 0, Math.PI * 2);
+        ctx.fillStyle = rgba(p.c, 0.95);
+        ctx.shadowColor = rgba(p.c, 0.85);
+        ctx.shadowBlur = 10;
         ctx.fill();
         ctx.shadowBlur = 0;
       });
     });
 
-    // nodes
     nodes.forEach(function (n, idx) {
       var r = redness(t, depth[idx]);
       var g = greenness(t, depth[idx]);
-      var c = COLORS.dim;
-      if (r > g) c = mix(COLORS.dim, COLORS.red, r);
-      else if (g > 0) c = mix(COLORS.dim, COLORS.green, g);
-      var alpha = 0.35 + breath * 0.1 + Math.max(r, g) * 0.55;
+      var c = COLORS.frost;
+      if (r > g) c = mix(COLORS.frost, COLORS.red, r);
+      else if (g > 0) c = mix(COLORS.frost, COLORS.green, g);
+      var alpha = 0.4 + breath * 0.12 + Math.max(r, g) * 0.55;
       ctx.beginPath();
-      ctx.arc(P[idx].x, P[idx].y, n.r + Math.max(r, g) * 1.5, 0, Math.PI * 2);
+      ctx.arc(P[idx].x, P[idx].y, n.r + Math.max(r, g) * 1.6, 0, Math.PI * 2);
       ctx.fillStyle = rgba(c, alpha);
       if (r > 0.1 || g > 0.1) {
-        ctx.shadowColor = rgba(c, 0.7);
-        ctx.shadowBlur = 10;
+        ctx.shadowColor = rgba(c, 0.75);
+        ctx.shadowBlur = 12;
       }
       ctx.fill();
       ctx.shadowBlur = 0;
     });
 
-    // memory pulse (violet) beside the origin node
     var v = violet(t);
     if (v > 0.01) {
       var o = P[ORIGIN];
       var pr = 3 + v * 4;
       ctx.beginPath();
       ctx.arc(o.x + 14, o.y - 12, pr, 0, Math.PI * 2);
-      ctx.fillStyle = rgba(COLORS.violet, v * 0.9);
-      ctx.shadowColor = rgba(COLORS.violet, 0.8);
-      ctx.shadowBlur = 14;
+      ctx.fillStyle = rgba(COLORS.violet, v * 0.95);
+      ctx.shadowColor = rgba(COLORS.violet, 0.85);
+      ctx.shadowBlur = 16;
       ctx.fill();
       ctx.shadowBlur = 0;
     }
 
-    // the guard ring
     var ra = ringAlpha(t);
     if (ra > 0.01) drawRing(P[ORIGIN], nodes[ORIGIN].r, ra);
+
+    if (captionEl) {
+      var cap = captionAt(t);
+      if (cap !== lastCaption) {
+        lastCaption = cap;
+        captionEl.style.opacity = "0";
+        window.setTimeout(function () {
+          captionEl.textContent = cap;
+          captionEl.style.opacity = "1";
+        }, 160);
+      }
+    }
   }
 
   function drawRing(p, r, alpha) {
     ctx.beginPath();
-    ctx.arc(p.x, p.y, r + 7, 0, Math.PI * 2);
-    ctx.lineWidth = 1.2;
-    ctx.strokeStyle = rgba(COLORS.green, 0.7 * alpha);
-    ctx.shadowColor = rgba(COLORS.green, 0.5 * alpha);
-    ctx.shadowBlur = 6;
+    ctx.arc(p.x, p.y, r + 8, 0, Math.PI * 2);
+    ctx.lineWidth = 1.4;
+    ctx.strokeStyle = rgba(COLORS.green, 0.75 * alpha);
+    ctx.shadowColor = rgba(COLORS.green, 0.55 * alpha);
+    ctx.shadowBlur = 8;
     ctx.stroke();
     ctx.shadowBlur = 0;
   }
 
   function drawStatic() {
-    // reduced motion: calm sky, guard already in place
     ctx.clearRect(0, 0, W, H);
+    drawMoon();
     var P = nodes.map(function (n) { return { x: n.x * W, y: n.y * H }; });
     edges.forEach(function (e) {
       ctx.beginPath();
       ctx.moveTo(P[e.a].x, P[e.a].y);
       ctx.lineTo(P[e.b].x, P[e.b].y);
       ctx.lineWidth = 1;
-      ctx.strokeStyle = "rgba(255,255,255,0.06)";
+      ctx.strokeStyle = "rgba(200,214,255,0.08)";
       ctx.stroke();
     });
     nodes.forEach(function (n, idx) {
       ctx.beginPath();
       ctx.arc(P[idx].x, P[idx].y, n.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(232,232,232,0.4)";
+      ctx.fillStyle = "rgba(200,214,255,0.45)";
       ctx.fill();
     });
     drawRing(P[ORIGIN], nodes[ORIGIN].r, 1);
+    if (captionEl) captionEl.textContent = "A guard already sits on the origin.";
   }
-
-  /* --------------------------------------------- run loop, pause smart */
 
   if (reduced) {
     drawStatic();
@@ -312,27 +378,6 @@
     sync();
   }
 
-  /* -------------------------------------------------- wordmark stagger */
-
-  var wm = document.getElementById("wordmark");
-  var text = "NIGHTSHIFT";
-  var frag = document.createDocumentFragment();
-  var moon = document.createElement("span");
-  moon.className = "lt moon-glyph";
-  moon.textContent = "☽";
-  moon.style.animationDelay = "200ms";
-  frag.appendChild(moon);
-  frag.appendChild(document.createTextNode(" "));
-  for (var ci = 0; ci < text.length; ci++) {
-    var s = document.createElement("span");
-    s.className = "lt";
-    s.textContent = text[ci];
-    s.style.animationDelay = 280 + ci * 40 + "ms";
-    frag.appendChild(s);
-  }
-  wm.textContent = "";
-  wm.appendChild(frag);
-
   /* ------------------------------------------------- reveal on scroll */
 
   var io = new IntersectionObserver(function (entries) {
@@ -342,10 +387,10 @@
       io.unobserve(en.target);
       if (en.target.querySelector("[data-count]")) runCounters(en.target);
     });
-  }, { threshold: 0.25 });
-  document.querySelectorAll(".rv, .shift, .nights, .figure").forEach(function (el) { io.observe(el); });
-
-  /* ------------------------------------------------- animated counters */
+  }, { threshold: 0.22 });
+  document.querySelectorAll(".rv, .shift, .chips, .figure").forEach(function (el) {
+    io.observe(el);
+  });
 
   function runCounters(root) {
     root.querySelectorAll("[data-count]").forEach(function (el) {
@@ -364,35 +409,40 @@
   }
 })();
 
-/* Le journal du Sentinel : la bande raconte la détection en boucle. */
+/* Sentinel journal */
 (function () {
-  var log = document.getElementById('watch-log');
+  var log = document.getElementById("watch-log");
   if (!log) return;
   var LINES = [
-    { t: '03:12:41', ds: 'orders', msg: 'fingerprint ok', c: 'ok' },
-    { t: '03:14:41', ds: 'order_details', msg: 'fingerprint ok', c: 'ok' },
-    { t: '03:16:41', ds: 'fct_revenue', msg: 'fingerprint ok', c: 'ok' },
-    { t: '03:18:41', ds: 'orders', msg: 'column gone: order_total', c: 'drift' },
-    { t: '03:18:42', ds: '☽ nightshift', msg: 'waking the shift · trigger: sentinel', c: 'wake' },
-    { t: '03:20:07', ds: 'orders', msg: 'incident resolved · guard posted', c: 'done' }
+    { t: "03:12:41", ds: "orders", msg: "fingerprint ok", c: "ok" },
+    { t: "03:14:41", ds: "order_details", msg: "fingerprint ok", c: "ok" },
+    { t: "03:16:41", ds: "fct_revenue", msg: "fingerprint ok", c: "ok" },
+    { t: "03:18:41", ds: "orders", msg: "column gone: order_total", c: "drift" },
+    { t: "03:18:42", ds: "☽ nightshift", msg: "waking the shift · trigger: sentinel", c: "wake" },
+    { t: "03:20:07", ds: "orders", msg: "incident resolved · guard posted", c: "done" },
   ];
-  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function render(instant) {
-    log.innerHTML = '';
+    log.innerHTML = "";
     LINES.forEach(function (l, i) {
-      var d = document.createElement('div');
-      d.className = 'wl ' + l.c + (instant ? ' on' : '');
-      d.innerHTML = '<span class="t">' + l.t + '</span><span class="ds">' + l.ds +
-        '</span><span class="msg">' + l.msg + '</span>';
+      var d = document.createElement("div");
+      d.className = "wl " + l.c + (instant ? " on" : "");
+      d.innerHTML =
+        '<span class="t">' + l.t + '</span><span class="ds">' + l.ds +
+        '</span><span class="msg">' + l.msg + "</span>";
       log.appendChild(d);
-      if (!instant) setTimeout(function () { d.classList.add('on'); }, 600 + i * 950);
+      if (!instant) setTimeout(function () { d.classList.add("on"); }, 600 + i * 950);
     });
   }
   if (reduced) { render(true); return; }
   var seen = false;
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (e) {
-      if (e.isIntersecting && !seen) { seen = true; render(false); setInterval(function () { render(false); }, 14000); }
+      if (e.isIntersecting && !seen) {
+        seen = true;
+        render(false);
+        setInterval(function () { render(false); }, 14000);
+      }
     });
   }, { threshold: 0.3 });
   io.observe(log);
