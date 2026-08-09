@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nightshift — the on-call data team that gets smarter every night</title>
+<meta name="description" content="Nightshift takes the data pager. A Claude agent on your DataHub graph works the incident, repairs it, and writes what it learned into the graph — so an investigation becomes a lookup.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ctext y='24' font-size='24'%3E%F0%9F%8C%99%3C/text%3E%3C/svg%3E">
+<link rel="stylesheet" href="/assets/landing.css">
+</head>
+<body>
+
+<header class="hero">
+  <canvas id="sky" aria-hidden="true"></canvas>
+  <div class="hero-inner">
+    <h1 class="wordmark" id="wordmark"><span class="moon-glyph">☽</span> NIGHTSHIFT</h1>
+    <p class="tagline">The on-call data team that gets smarter every night.</p>
+  </div>
+  <div class="scroll-hint" aria-hidden="true">SCROLL</div>
+</header>
+
+<main>
+  <section class="section" id="problem">
+    <div class="rv">
+      <p class="eyebrow"><em>2:47 AM</em> · the problem</p>
+      <p class="lede">An upstream team renames a column and tells nobody.
+      By morning the revenue dashboard reads zero —
+      and <span class="who">finance notices before you do</span>.</p>
+    </div>
+    <div class="slack rv" style="transition-delay:120ms">
+      <div class="avatar" aria-hidden="true">FN</div>
+      <div>
+        <p class="meta"><b>Priya (Finance)</b><time>9:07 AM</time></p>
+        <p class="msg">Why is the revenue dashboard showing zero for last week?</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="shift">
+    <div class="rv">
+      <p class="eyebrow">The shift</p>
+      <p class="lede">Nightshift takes the pager and works the incident
+      the way a senior engineer would — then does the one thing
+      humans never do at 4am: <strong>it writes down what it learned, inside the graph.</strong></p>
+    </div>
+    <div class="shift" role="list">
+      <div class="step" role="listitem" style="--step-c:#b98aff; --step-d:0ms">
+        <div class="dot"></div>
+        <h3>Recall</h3>
+        <p>Search the graph's memory for this failure mode.</p>
+      </div>
+      <div class="step" role="listitem" style="--step-c:#6ea8ff; --step-d:120ms">
+        <div class="dot"></div>
+        <h3>Lineage</h3>
+        <p>Walk upstream from the broken dashboard.</p>
+      </div>
+      <div class="step" role="listitem" style="--step-c:#6ea8ff; --step-d:240ms">
+        <div class="dot"></div>
+        <h3>Diagnose</h3>
+        <p>Find the renamed column, prove it.</p>
+      </div>
+      <div class="step" role="listitem" style="--step-c:#e8e8e8; --step-d:360ms">
+        <div class="dot"></div>
+        <h3>Fix</h3>
+        <p>Repair the mapping, backfill, verify.</p>
+      </div>
+      <div class="step" role="listitem" style="--step-c:#5fd29a; --step-d:480ms">
+        <div class="dot"></div>
+        <h3>Remember</h3>
+        <p>Postmortem, memory, tag, and a guard on the column.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" id="numbers">
+    <div class="rv">
+      <p class="eyebrow">The graph remembers</p>
+      <p class="lede">Same break, two nights apart. Real runs, real numbers.</p>
+    </div>
+    <div class="nights">
+      <div class="night rv" style="transition-delay:100ms">
+        <p class="label">Night 1 · investigation</p>
+        <div class="metric">
+          <p class="val"><span data-count="14">0</span><span class="unit">calls</span></p>
+          <p class="what">graph queries to find the cause</p>
+        </div>
+        <div class="metric">
+          <p class="val"><span data-count="2.2">0.0</span><span class="unit">min</span></p>
+          <p class="what">to diagnosis</p>
+        </div>
+      </div>
+      <div class="night learned rv" style="transition-delay:220ms">
+        <p class="label">Night N · lookup</p>
+        <div class="metric">
+          <p class="val"><span data-count="5">0</span><span class="unit">calls</span></p>
+          <p class="what">memory answers first</p>
+        </div>
+        <div class="metric">
+          <p class="val"><span data-count="1.1">0.0</span><span class="unit">min</span></p>
+          <p class="what">to diagnosis</p>
+        </div>
+      </div>
+    </div>
+    <p class="lookup-line rv" style="transition-delay:340ms">An investigation becomes a <em>lookup</em>.</p>
+  </section>
+
+  <section class="section" id="sentinel">
+    <div class="rv">
+      <p class="eyebrow">The Sentinel</p>
+      <div class="sentinel-row">
+        <div class="pulse-badge" aria-hidden="true"></div>
+        <p><strong>Nobody presses the button.</strong> The Sentinel notices,
+        and wakes the shift itself. Know before they do.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section cta">
+    <div class="rv">
+      <h2><span class="moon-glyph">☽</span> Put the night on shift.</h2>
+      <div class="cta-buttons">
+        <a class="btn" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline yourself</a>
+        <a class="btn btn-primary" href="/app">Open the war room</a>
+      </div>
+      <p class="fine">Apache 2.0 · Built on the DataHub MCP Server ·
+        <a href="https://github.com/Mossab28/nightshift">GitHub</a></p>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span class="moon-glyph">☽</span> · Written by the night shift.
+</footer>
+
+<script src="/assets/landing.js"></script>
+</body>
+</html>

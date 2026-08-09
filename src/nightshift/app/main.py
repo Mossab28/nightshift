@@ -28,9 +28,15 @@ def _start_sentinel() -> None:
 app.mount("/assets", StaticFiles(directory=STATIC / "assets"), name="assets")
 
 
+@app.get("/")
+def landing() -> FileResponse:
+    """Product landing page on the root path exactly."""
+    return FileResponse(STATIC / "landing.html")
+
+
 @app.get("/{page:path}")
 def spa(page: str) -> FileResponse:
-    """Single-page app: every non-API path serves the shell."""
+    """Single-page app: /app and every other non-API path serve the shell."""
     return FileResponse(STATIC / "index.html")
 
 
