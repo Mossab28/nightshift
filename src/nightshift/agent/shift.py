@@ -139,6 +139,7 @@ async def _run(
         disallowed_tools=["Bash", "WebSearch", "WebFetch", "Write", "Edit"],
         permission_mode="bypassPermissions",
         max_turns=40,
+        max_budget_usd=float(os.environ.get("NIGHTSHIFT_SHIFT_BUDGET_USD", "1.5")),
     )
 
     console.print("[bold]The pager goes off.[/bold]\n")
