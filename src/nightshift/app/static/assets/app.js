@@ -71,28 +71,29 @@ function classify(ev) {
 
 /* ------------------------------------------------------------------ shell */
 
-function shell(active, contentNode) {
+function shell(active, contentNode, opts = {}) {
   const nav = [
-    ["#/", "Dashboard", "dashboard"],
-    ["#/shifts", "Shifts", "shifts"],
-    ["#/memory", "Memory", "memory"],
-    ["#/settings", "Settings", "settings"],
+    ["#/", "Dashboard", "dashboard", "nav-dashboard"],
+    ["#/shifts", "Shifts", "shifts", "nav-shifts"],
+    ["#/memory", "Memory", "memory", "nav-memory"],
+    ["#/settings", "Settings", "settings", "nav-settings"],
   ];
   const root = el(`
-    <div class="shell-root" style="display:flex;flex-direction:column;min-height:100vh">
+    <div class="shell-root">
       <header class="topbar">
         <a href="#/" class="wordmark"><span class="moon">&#9789;</span>NIGHTSHIFT</a>
         <span class="ws"></span>
         <span class="spacer"></span>
+        <button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>
         <span class="who"></span>
         <button class="btn-ghost" id="logout">Sign out</button>
       </header>
       <div class="frame">
         <nav class="sidenav">
-          ${nav.map(([h, t, k]) =>
-            `<a href="${h}" class="${k === active ? "active" : ""}">${t}</a>`).join("")}
+          ${nav.map(([h, t, k, tour]) =>
+            `<a href="${h}" class="${k === active ? "active" : ""}" data-tour="${tour}">${t}</a>`).join("")}
         </nav>
-        <main class="content"></main>
+        <main class="content${opts.wide ? " content--wide" : ""}"></main>
       </div>
     </div>`);
   const ws = state.workspaces.find((w) => w.id === state.wsId);
@@ -102,6 +103,12 @@ function shell(active, contentNode) {
     await api("/auth/logout", { method: "POST" }).catch(() => {});
     state.email = null;
     location.hash = "#/login";
+  };
+  root.querySelector("#help-tour").onclick = () => {
+    if (window.NightshiftTour) {
+      NightshiftTour.reset();
+      NightshiftTour.start(true);
+    }
   };
   root.querySelector("main.content").append(contentNode);
   app.replaceChildren(root);
@@ -243,9 +250,9 @@ async function viewDashboard() {
         <h2 class="page-title">Dashboard</h2>
         <p class="page-sub">While you sleep, the graph remembers.</p>
       </div>
-      <button class="btn-primary" id="wake">Wake the night shift</button>
+      <button class="btn-primary" id="wake" data-tour="wake">Wake the night shift</button>
     </div>
-    <div class="plate sentinel-band" id="sentinel">
+    <div class="plate sentinel-band" id="sentinel" data-tour="sentinel">
       <span class="dot"></span>
       <span class="state">&mdash;</span>
       <span class="note"></span>
@@ -263,6 +270,7 @@ async function viewDashboard() {
   </div>`);
   node.querySelector("#wake").onclick = openWakeModal;
   shell("dashboard", node);
+  if (window.NightshiftTour) setTimeout(() => NightshiftTour.start(false), 350);
 
   const [ws, stats, shifts] = await Promise.all([
     api(`/workspaces/${state.wsId}`),
@@ -334,7 +342,7 @@ async function viewShifts() {
         <h2 class="page-title">Shifts</h2>
         <p class="page-sub">Every night the agent worked, on the record.</p>
       </div>
-      <button class="btn-primary" id="wake">Wake the night shift</button>
+      <button class="btn-primary" id="wake" data-tour="wake">Wake the night shift</button>
     </div>
     <div class="plate rowlist" id="list"></div>
   </div>`);
@@ -486,32 +494,100 @@ function nsEvidenceSVG(nodes) {
 
 /* --------------------------------------------------------------- war room */
 
+function wrAspectKey(label) {
+  const l = (label || "").toLowerCase();
+  if (l.includes("open_incident") || l.includes("resolve_incident")) return "incident";
+  if (l.includes("remember_incident")) return "memory";
+  if (l.includes("guard_column") || l.includes("immunize")) return "guard";
+  if (l.includes("open_fix_pr")) return "pr";
+  if (l.includes("recall") || l.includes("failure_mode")) return "recall";
+  return null;
+}
+
+function wrStepFor(label, kind) {
+  const l = (label || "").toLowerCase();
+  if (l.includes("recall") || l.includes("failure_mode")) return "recall";
+  if (l.includes("lineage") || l.includes("schema") || l.includes("get_entities") || l.includes("dataset_queries")) return "lineage";
+  if (l.includes("open_incident") || kind === "thought") return "diagnose";
+  if (l.includes("remember") || l.includes("guard") || l.includes("immunize") || l.includes("resolve")) return "remember";
+  if (l.includes("open_fix_pr") || l.includes("fix")) return "fix";
+  return null;
+}
+
 async function viewWarroom(shiftId) {
-  const node = el(`<div>
-    <div class="page-head">
-      <div class="grow">
-        <h2 class="page-title warroom-head"><span>War room</span> <span id="badges"></span></h2>
-        <p class="page-sub" id="symptom"></p>
-        <p class="urn mono" id="urn" style="font-size:12px;color:var(--faint);margin-top:4px;word-break:break-all"></p>
+  const node = el(`<div class="wr" data-tour="warroom">
+    <header class="wr__top">
+      <div class="wr__top-left">
+        <a class="wr__back" href="#/shifts">← shifts</a>
+        <span class="wr__status" id="wr-status">idle</span>
+        <b id="wr-title">War room</b>
       </div>
-      <a href="#/shifts" style="font-size:12px;white-space:nowrap">All shifts</a>
-    </div>
-    <div class="timeline" id="timeline"></div>
-    <p class="working-note" id="working" hidden>
-      <span class="dotpulse">&#9789;</span> The night shift is working. This page follows along.</p>
-    <div class="plate evidence" id="evidence" hidden>
-      <div class="head">EVIDENCE &mdash; LINEAGE PATH</div>
-      <div class="evidence-scroll"></div>
-    </div>
-    <div class="plate conclusion" id="conclusion" hidden>
-      <div class="head">MORNING REPORT</div>
-      <div class="body"></div>
+      <div class="wr__steps" id="wr-steps">
+        <span class="wr__step" data-step="recall">Recall</span>
+        <span class="wr__step" data-step="lineage">Lineage</span>
+        <span class="wr__step" data-step="diagnose">Diagnose</span>
+        <span class="wr__step" data-step="remember">Remember</span>
+        <span class="wr__step" data-step="fix">Fix PR</span>
+      </div>
+      <div class="wr__top-right mono" id="wr-meta"></div>
+    </header>
+    <div class="wr__grid">
+      <section class="wr__chat">
+        <p class="wr__pager" id="wr-pager"></p>
+        <p class="wr__urn mono" id="wr-urn"></p>
+        <div class="wr__stream" id="wr-stream"></div>
+        <div class="plate wr__report" id="wr-report" hidden>
+          <div class="wr__report-head" id="wr-report-head">Morning report</div>
+          <div class="wr__report-body" id="wr-report-body"></div>
+        </div>
+        <div class="plate evidence" id="evidence" hidden>
+          <div class="head">Lineage path</div>
+          <div class="evidence-scroll"></div>
+        </div>
+      </section>
+      <aside class="wr__rail" data-tour="writeback">
+        <div class="wr__rail-head">DataHub · write-back</div>
+        <ul class="wr__aspects" id="wr-aspects">
+          <li data-aspect="recall"><i style="--c:var(--memory)"></i><span>Memory read</span><b>·</b></li>
+          <li data-aspect="incident"><i style="--c:var(--alarm)"></i><span>Incident</span><b>·</b></li>
+          <li data-aspect="memory"><i style="--c:var(--moon)"></i><span>Postmortem</span><b>·</b></li>
+          <li data-aspect="guard"><i style="--c:var(--write)"></i><span>Presence guard</span><b>·</b></li>
+          <li data-aspect="pr"><i style="--c:var(--tool)"></i><span>Draft PR</span><b>·</b></li>
+        </ul>
+        <p class="wr__rail-note">The agent is the process behind this page. Saturation means it acted.</p>
+      </aside>
     </div>
   </div>`);
-  shell("shifts", node);
+  shell("shifts", node, { wide: true });
 
   let lastCount = -1;
   let evidenceTried = false;
+  const lit = new Set();
+
+  const lightAspect = (key) => {
+    if (!key || lit.has(key)) return;
+    lit.add(key);
+    const li = node.querySelector(`[data-aspect="${key}"]`);
+    if (!li) return;
+    li.classList.add("is-on");
+    li.querySelector("b").textContent = key === "recall" ? "read" : "written";
+  };
+
+  const setStep = (name) => {
+    if (!name) return;
+    let hit = false;
+    node.querySelectorAll(".wr__step").forEach((el) => {
+      const id = el.getAttribute("data-step");
+      el.classList.remove("is-on");
+      if (id === name) {
+        el.classList.add("is-on", "is-done");
+        hit = true;
+      } else if (!hit) {
+        el.classList.add("is-done");
+      }
+    });
+  };
+
   const maybeEvidence = async (s) => {
     if (evidenceTried || s.status !== "done") return;
     evidenceTried = true;
@@ -523,37 +599,55 @@ async function viewWarroom(shiftId) {
     box.querySelector(".evidence-scroll").innerHTML = nsEvidenceSVG(lineage);
     box.hidden = false;
   };
+
   const render = (s) => {
-    node.querySelector("#symptom").textContent = s.symptom;
-    node.querySelector("#urn").textContent = s.entry_point_urn || "";
-    node.querySelector("#badges").innerHTML =
-      `<span class="badge">${esc(s.trigger)}</span> <span class="badge status-${esc(s.status)}">${esc(s.status)}</span>`;
+    node.querySelector("#wr-pager").textContent = s.symptom || "";
+    node.querySelector("#wr-urn").textContent = s.entry_point_urn || "";
+    node.querySelector("#wr-title").textContent =
+      s.started_from_memory ? "Night shift · from memory" : "Night shift · cold";
+    node.querySelector("#wr-meta").textContent =
+      `${s.trigger || "manual"} · ${fmtWhen(s.started_at)}`;
+    const status = node.querySelector("#wr-status");
+    status.textContent = s.status;
+    status.className = "wr__status status-" + s.status;
+
     const events = s.events || [];
     if (events.length !== lastCount) {
       lastCount = events.length;
-      node.querySelector("#timeline").innerHTML = events.map((ev) => {
+      const stream = node.querySelector("#wr-stream");
+      stream.innerHTML = events.map((ev) => {
         const css = classify(ev);
-        const stamp = (ev.at || "").split("T").pop();
+        const stamp = (ev.at || "").split("T").pop() || "";
         const label = ev.label || (css === "thought" ? "thinking" : "");
-        return `<div class="event ${css}">
-          <span class="stamp">${esc(stamp)}</span>
-          <span class="label">${esc(label)}</span>
-          <div class="detail">${esc(ev.detail || "")}</div>
+        const step = wrStepFor(label, ev.kind);
+        if (step) setStep(step);
+        const aspect = wrAspectKey(label);
+        if (aspect) lightAspect(aspect);
+        if (css === "thought") {
+          return `<div class="wr-msg wr-msg--agent">
+            <div class="wr-msg__who"><span>☽ nightshift</span><time>${esc(stamp)}</time></div>
+            <div class="wr-msg__bubble">${esc(ev.detail || "")}</div>
+          </div>`;
+        }
+        return `<div class="wr-msg wr-msg--tool">
+          <div class="wr-tool ${css}">
+            <span class="wr-tool__name">${esc(label)}</span>
+            <span class="wr-tool__stamp">${esc(stamp)}</span>
+            <span class="wr-tool__detail">${esc(ev.detail || "")}</span>
+          </div>
         </div>`;
       }).join("");
+      stream.scrollTop = stream.scrollHeight;
     }
+
     const running = s.status === "running";
-    node.querySelector("#working").hidden = !running;
-    const conc = node.querySelector("#conclusion");
+    const report = node.querySelector("#wr-report");
     if (!running && s.conclusion) {
-      conc.hidden = false;
-      conc.classList.toggle("failed", s.status === "failed");
-      if (s.status === "failed") {
-        conc.style.borderLeftColor = "var(--alarm)";
-        conc.querySelector(".head").textContent = "SHIFT FAILED";
-        conc.querySelector(".head").style.color = "var(--alarm)";
-      }
-      conc.querySelector(".body").textContent = s.conclusion;
+      report.hidden = false;
+      report.classList.toggle("failed", s.status === "failed");
+      node.querySelector("#wr-report-head").textContent =
+        s.status === "failed" ? "Shift failed" : "Morning report";
+      node.querySelector("#wr-report-body").textContent = s.conclusion;
     }
     if (!running) maybeEvidence(s);
     return running;
@@ -570,7 +664,7 @@ async function viewWarroom(shiftId) {
       }, 2000);
     }
   } catch (ex) {
-    node.querySelector("#timeline").innerHTML =
+    node.querySelector("#wr-stream").innerHTML =
       `<div class="empty"><p>${esc(ex.message)}</p></div>`;
   }
 }
@@ -647,7 +741,7 @@ async function viewSettings() {
 
     <section class="block">
       <h3>DataHub connection</h3>
-      <div class="plate settings-card">
+      <div class="plate settings-card" data-tour="conn">
         <form id="conn-form">
           <label class="field"><span>GMS URL</span>
             <input type="text" name="gms_url" class="urn-input" placeholder="http://localhost:8080"></label>
