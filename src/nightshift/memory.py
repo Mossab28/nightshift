@@ -226,6 +226,58 @@ class GraphMemory:
             )
         )
 
+    def forget(self, dataset_urn: str) -> int:
+        """Erase Nightshift's memory on one asset (demo resets, bad conclusions).
+
+        Removes the structured-property values, the Nightshift documentation
+        entries and the failure-mode tags. Returns how many postmortems were
+        dropped. Incidents and assertions are left alone: they are history, not
+        memory.
+        """
+        dropped = 0
+        props = self._graph.get_aspect(dataset_urn, models.StructuredPropertiesClass)
+        if props:
+            kept = [a for a in props.properties if a.propertyUrn != MEMORY_PROPERTY_URN]
+            dropped = sum(
+                len(a.values) for a in props.properties if a.propertyUrn == MEMORY_PROPERTY_URN
+            )
+            if dropped:
+                self._graph.emit_mcp(
+                    MetadataChangeProposalWrapper(
+                        entityUrn=dataset_urn,
+                        aspect=models.StructuredPropertiesClass(properties=kept),
+                    )
+                )
+        docs = self._graph.get_aspect(dataset_urn, models.DocumentationClass)
+        if docs:
+            kept_docs = [
+                d
+                for d in docs.documentations
+                if not (d.attribution and d.attribution.actor == NIGHTSHIFT_ACTOR)
+            ]
+            if len(kept_docs) != len(docs.documentations):
+                self._graph.emit_mcp(
+                    MetadataChangeProposalWrapper(
+                        entityUrn=dataset_urn,
+                        aspect=models.DocumentationClass(documentations=kept_docs),
+                    )
+                )
+        tags = self._graph.get_aspect(dataset_urn, models.GlobalTagsClass)
+        if tags:
+            kept_tags = [
+                t
+                for t in tags.tags
+                if not t.tag.startswith(f"urn:li:tag:{FAILURE_MODE_TAG_PREFIX}.")
+            ]
+            if len(kept_tags) != len(tags.tags):
+                self._graph.emit_mcp(
+                    MetadataChangeProposalWrapper(
+                        entityUrn=dataset_urn,
+                        aspect=models.GlobalTagsClass(tags=kept_tags),
+                    )
+                )
+        return dropped
+
     # ----------------------------------------------------------------- read
 
     def recall(self, dataset_urn: str) -> list[Postmortem]:

@@ -56,7 +56,7 @@ mutation raiseIncident($input: RaiseIncidentInput!) {
 """
 
 _UPDATE_STATUS = """
-mutation updateIncidentStatus($urn: String!, $input: UpdateIncidentStatusInput!) {
+mutation updateIncidentStatus($urn: String!, $input: IncidentStatusInput!) {
   updateIncidentStatus(urn: $urn, input: $input)
 }
 """

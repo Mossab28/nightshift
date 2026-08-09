@@ -33,10 +33,12 @@ REPORTS_DIR = STATE_DIR / "reports"
 # Defaults chosen for the showcase-ecommerce datapack; overridable on the CLI
 # so the same commands work on any graph.
 DEFAULT_UPSTREAM = (
-    "urn:li:dataset:(urn:li:dataPlatform:postgres,ecommerce.public.orders,PROD)"
+    "urn:li:dataset:(urn:li:dataPlatform:snowflake,"
+    "b2fd91.order_entry_db.order_entry.orders,PROD)"
 )
 DEFAULT_VICTIM = (
-    "urn:li:dataset:(urn:li:dataPlatform:snowflake,analytics.marts.fct_revenue,PROD)"
+    "urn:li:dataset:(urn:li:dataPlatform:powerbi,"
+    "b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)"
 )
 DEFAULT_OLD_COLUMN = "order_total"
 DEFAULT_NEW_COLUMN = "order_amount"
@@ -184,6 +186,14 @@ def memory(dataset_urn: str) -> None:
     for p in postmortems:
         table.add_row(str(p.recorded_at_ms), p.failure_mode, p.root_cause)
     console.print(table)
+
+
+@app.command()
+def forget(dataset_urn: str) -> None:
+    """Erase Nightshift's memory on one asset (demo resets, bad conclusions)."""
+    graph = build_graph(load_settings())
+    dropped = GraphMemory(graph).forget(dataset_urn)
+    console.print(f"Dropped {dropped} postmortem(s) from {dataset_urn}")
 
 
 if __name__ == "__main__":

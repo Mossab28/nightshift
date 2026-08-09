@@ -16,6 +16,7 @@ from __future__ import annotations
 import asyncio
 import datetime as dt
 import os
+import sys
 from dataclasses import dataclass, field
 
 from rich.console import Console
@@ -100,7 +101,7 @@ def _mcp_servers() -> dict:
             "env": env,
         },
         "nightshift": {
-            "command": "python",
+            "command": sys.executable,
             "args": ["-m", "nightshift.mcp_server"],
             "env": env,
         },

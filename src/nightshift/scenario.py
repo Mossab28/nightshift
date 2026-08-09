@@ -100,8 +100,8 @@ def break_pipeline(
         new_column=new_column,
         victim_urn=victim_urn,
         symptom=(
-            "The revenue dashboard is showing zero for last week. Finance noticed "
-            "before we did."
+            "The revenue dashboard is showing zero for last week. It was fine at "
+            "yesterday's close; it broke overnight. Finance noticed before we did."
         ),
     )
 
