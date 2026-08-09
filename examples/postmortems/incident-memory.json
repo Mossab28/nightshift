@@ -1,0 +1,153 @@
+[
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "Revenue dashboard showed zero for last week. Snowflake order_entry.orders renamed order_total -> order_amount in an upstream refactor without telling downstream. dbt order_details still selected o.order_total, producing nulls; SUMX(ORDER_DETAILS[order_total]) in PowerBI summed to zero. Fixed by aliasing o.order_amount AS order_total in the dbt order_details model; backfill required for the affected window.",
+    "root_cause": "Upstream rename order_total -> order_amount in snowflake table order_entry_db.order_entry.orders; dbt model order_details still referenced order_total",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:c9f3ffe7-dd9c-473a-88c2-ca2c182fc991",
+    "guard_urn": null,
+    "minutes_to_root_cause": 10.0,
+    "recorded_at_ms": 1786292128144
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "RECURRENCE of incident c9f3ffe7. Revenue dashboard zeroed overnight again. Started from memory: verified in 3 calls that snowflake order_entry.orders exposes only order_amount while the deployed dbt order_details model still selects o.order_total \u2192 nulls \u2192 SUMX(order_total)=0 in PowerBI. The previous night's alias fix did not stick in prod (never merged or reverted by the refactor). Fix re-issued: `o.order_amount AS order_total` in dbt order_details + rebuild + backfill last week. Guards now on orders.order_amount (assertion nightshift-324aa58280846fcf725a) and order_details.order_total (nightshift-9d49a068e744a53b6ac1). Lesson for next night: on this asset, check the DEPLOYED model SQL first \u2014 the fix existing in memory does not mean it shipped.",
+    "root_cause": "Deployed dbt model order_details still references o.order_total although upstream snowflake order_entry_db.order_entry.orders renamed the column to order_amount; prior fix never landed in prod",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:941adb6a-1ba3-45cb-91f0-a16825e6aca3",
+    "guard_urn": "urn:li:assertion:nightshift-324aa58280846fcf725a",
+    "minutes_to_root_cause": 4.0,
+    "recorded_at_ms": 1786292283039
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "THIRD occurrence (after c9f3ffe7 and 941adb6a). Revenue dashboard zeroed overnight again. Started from memory; verified in exactly 2 reads per the recorded protocol: (1) snowflake orders schema has only order_amount (description says renamed from order_total), (2) deployed dbt order_details logic still selects o.order_total \u2192 NULLs \u2192 SUMX(order_total)=0 in PowerBI. Fix re-issued: `o.order_amount AS order_total` in dbt order_details + rebuild + backfill last week. The fix has failed to persist in prod TWICE \u2014 the real problem is process, not SQL: the upstream refactor branch keeps shipping without the alias. Escalated to model owner michael2@example.com / Data Platform Team to merge permanently and add a dbt source column test on orders.order_amount so CI blocks any build referencing order_total. Next night: if this fires again, do NOT re-diagnose \u2014 check deployed model SQL (1 read) and go straight to why the merge keeps getting reverted.",
+    "root_cause": "Deployed dbt model order_details references o.order_total although upstream snowflake order_entry_db.order_entry.orders renamed the column to order_amount; the alias fix from two prior incidents has never landed durably in prod",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:045d5439-5fbe-48ec-b8d8-a553bde1f2c6",
+    "guard_urn": null,
+    "minutes_to_root_cause": 3.0,
+    "recorded_at_ms": 1786292416623
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "FOURTH occurrence (after c9f3ffe7, 941adb6a, 045d5439). Revenue dashboard zeroed overnight; Finance noticed first. Started from memory, verified in exactly the 2 prescribed reads: (1) snowflake orders schema has only order_amount (marked \"renamed from order_total\"), (2) deployed dbt order_details logic still selects o.order_total. Fix re-issued: `o.order_amount AS order_total` in dbt order_details + rebuild + backfill last week. The prior night's escalation to michael2@example.com did NOT prevent recurrence \u2014 the upstream refactor branch is still shipping without the alias and without the CI source test. This is now purely a process failure: the SQL fix is known and trivial. Next night: 1 read (deployed order_details logic) to confirm, then escalate harder \u2014 the dbt source test on orders.order_amount blocking builds that reference order_total must land in CI before this incident can be considered closed for good. Guards re-issued on both fields.",
+    "root_cause": "Deployed dbt model order_details still references o.order_total although upstream snowflake order_entry_db.order_entry.orders renamed the column to order_amount; the alias fix from three prior incidents keeps being overwritten by the upstream refactor branch and no CI test blocks it",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:904f7975-2272-41ad-9e3f-f4a4188af774",
+    "guard_urn": null,
+    "minutes_to_root_cause": 3.0,
+    "recorded_at_ms": 1786293077063
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "FIFTH occurrence (after c9f3ffe7, 941adb6a, 045d5439, 904f7975). Revenue dashboard zero for last week, fine at yesterday's close, Finance noticed first. Started from memory, did NOT re-walk lineage, verified in exactly the 2 prescribed reads: (1) snowflake order_entry.orders exposes only `order_amount` FLOAT, description says \"(renamed from order_total in an upstream refactor)\"; (2) deployed dbt order_details header CTE still selects `o.order_total,` from {{ source('order_entry','orders') }} -> all-NULL order_total -> SUMX(ORDER_DETAILS[order_total]) = 0 in PowerBI. Fix re-issued: `o.order_amount AS order_total` + full rebuild (materialization=table) + 7-day backfill. STOP RE-DIAGNOSING THIS. Five nights, five identical diagnoses, ~3 minutes each. The SQL fix is known and correct; it does not survive in prod because the upstream refactor branch keeps overwriting order_details without the alias and CI has nothing that blocks it. Escalations to michael2@example.com alone have now failed twice. NEXT NIGHT PROTOCOL: 1 read (deployed order_details logic) to confirm it is the same break, re-apply the alias, then do NOT write another postmortem repeating this \u2014 instead escalate to the model owner's management chain (Ian Chen, Director of Data Engineering, ian.chen@example.com) and Data Platform Team (data-platform@example.com), because the missing artifact is organizational: a dbt source column test on orders.order_amount plus a CI check failing any model that references orders.order_total. Until that test exists in CI, treat every future zero-revenue page on this asset as this same incident. Chronic follow-ups found tonight, NOT causes: glossary terms \"Order Total\" and \"Revenue by Customer Class\" still document SUM(order_total) against order_entry_db.analytics.order_details; order_details.order_total carries a PII glossary term that looks like mistagging.",
+    "root_cause": "Deployed dbt model b2fd91.ORDER_ENTRY_DB.analytics.order_details selects o.order_total from source('order_entry','orders'), but that snowflake table renamed the column to order_amount months ago; the aliasing fix has been applied and silently reverted by the upstream refactor branch on four prior nights because no CI test blocks a build referencing order_total",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:93625956-1d06-43a2-b6f9-a23dc1612e19",
+    "guard_urn": null,
+    "minutes_to_root_cause": 2.0,
+    "recorded_at_ms": 1786294176144
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "SIXTH occurrence (c9f3ffe7, 941adb6a, 045d5439, 904f7975, 93625956, now 061a5777). Diagnosis is settled and this postmortem does not repeat it \u2014 read incident 93625956 for the full trace. Tonight: 2 reads, ~2 min, confirmed identical. orders exposes only order_amount FLOAT; deployed order_details header CTE still selects `o.order_total,`. Alias re-applied + rebuild + 7-day backfill.\n\nDO NOT INVESTIGATE THIS AGAIN. The technical fix is one line and it works. It does not survive because the upstream refactor branch overwrites order_details without the alias and CI has nothing that blocks it. Escalation history: michael2@example.com (model owner) twice, no effect; night 5 escalated to Ian Chen + Data Platform Team, still recurred.\n\nNEXT NIGHT PROTOCOL \u2014 do this and nothing else:\n1. One read: deployed logic of urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD). If it says `o.order_total,` it is this incident. Do not read anything else.\n2. Re-apply `o.order_amount AS order_total`, rebuild, backfill 7 days.\n3. Do NOT write another postmortem. Append to this one.\n4. Spend the rest of the shift on the ONLY thing that ends this: a dbt source column test on order_entry.orders.order_amount plus a CI check that fails any model referencing orders.order_total. Chase whoever controls the CI config directly \u2014 Data Platform Team (data-platform@example.com), Julia Novak (Data Quality Engineer, julia.novak@example.com), Fiona Green (Technical Lead, marty@example.com). Escalating to owners has now failed three times; the gap is a CI rule, not an owner's attention.\n\nGuards live: orders.order_amount = nightshift-324aa58280846fcf725a, order_details.order_total = nightshift-9e2ce465787f68337cc3. If these guards are passing while the dashboard is zero, the guards are not being evaluated on the rebuild \u2014 that is a NEW finding worth investigating.\n\nChronic follow-ups, not causes, still open after 6 nights: glossary terms \"Order Total\" (urn:li:glossaryTerm:b2fd91.42266719-3cab-42b8-a8d2-49d782876dbc) and \"Revenue by Customer Class\" (urn:li:glossaryTerm:b2fd91.26e268c3-3688-4281-949e-8c1aa2600c02) still document SUM(order_total) against order_entry_db.analytics.order_details, which will mislead anyone writing revenue SQL against the raw orders table; order_details.order_total still carries a PII glossary term, which is mistagging on a money column.",
+    "root_cause": "Deployed dbt model b2fd91.ORDER_ENTRY_DB.analytics.order_details selects o.order_total from source('order_entry','orders'), but that snowflake table renamed the column to order_amount months ago. The one-line alias fix has been applied and silently reverted on five prior nights because the upstream refactor branch keeps overwriting the model and no CI test blocks a build referencing orders.order_total. The recurring cause is the missing CI guard, not the SQL.",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:061a5777-30ae-4613-bf6a-79383871cc33",
+    "guard_urn": "urn:li:assertion:nightshift-9e2ce465787f68337cc3",
+    "minutes_to_root_cause": 2.0,
+    "recorded_at_ms": 1786294362603
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "SEVENTH occurrence (c9f3ffe7, 941adb6a, 045d5439, 904f7975, 93625956, 061a5777, now 87aa96bc). THIS POSTMORTEM DOES NOT RE-DIAGNOSE THE BREAK \u2014 read 061a5777/93625956 for the settled trace. Tonight: 1 read per the recorded protocol, ~2 min, identical. Deployed order_details header CTE still selects `o.order_total,`. Alias re-applied + rebuild + 7-day backfill.\n\nNEW FINDING \u2014 THE REASON SIX NIGHTS OF GUARDS DID NOTHING. Night 6 said: \"if the guards are passing while the dashboard is zero, that is a NEW finding worth investigating.\" They were passing. Investigated. The guards are cosmetic on two counts:\n(a) All three Nightshift assertions (324aa58280846fcf725a on orders.order_amount, 9e2ce465787f68337cc3 on dbt order_details.order_total, 9d49a068e744a53b6ac1 on snowflake order_details.order_total) are nativeType `nightshift_column_present`, logic \"column X must exist\". Their descriptions CLAIM not-null / non-zero-SUM semantics; the actual logic does not. Do not read the description and assume coverage.\n(b) They cannot catch this failure mode even if evaluated: order_total ALWAYS EXISTS on order_details (FLOAT, present in schema tonight). It goes all-NULL. Presence passes; revenue is zero.\n(c) Their only runEvents are their own declaration stamps (run ms == created ms, 3 events each, 0 failures). They have never been evaluated against a build. That is why dataset health printed \"All assertions are passing\" during a live zero-revenue outage.\n(d) Calling guard_column again on order_details.order_total returns the SAME urn 9e2ce465787f68337cc3 \u2014 the tool updates the existing presence assertion. Nightshift CANNOT create a value-level guard with the tools it has. Stop expecting the next night's guard to help.\n\nNEXT NIGHT PROTOCOL \u2014 unchanged confirm step, changed follow-up:\n1. One read: deployed logic of urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD). If it says `o.order_total,` it is this incident. Read nothing else.\n2. Re-apply `o.order_amount AS order_total`, rebuild, backfill 7 days.\n3. Do NOT investigate, do NOT re-walk lineage, do NOT raise another presence guard \u2014 it is a no-op.\n4. Ignore dataset health on this path entirely; the assertions are not evidence.\n5. Spend the shift on the two artifacts humans must build, because Nightshift cannot: (i) dbt source column test on order_entry.orders.order_amount + CI rule failing any model referencing orders.order_total; (ii) VALUE-level dbt tests on order_details.order_total \u2014 not_null, and SUM over trailing 7 days > 0 \u2014 wired to run on every rebuild. Chase CI config holders directly: Data Platform Team (data-platform@example.com, technical owner), Julia Novak (julia.novak@example.com, Data Quality Engineer, technical owner), Fiona Green (fiona.green@example.com, Technical Lead). Owner escalations (michael2@example.com x2, Ian Chen x1) have all failed.\n\nChronic follow-ups, still open after 7 nights, NOT causes: glossary terms \"Order Total\" (urn:li:glossaryTerm:b2fd91.42266719-3cab-42b8-a8d2-49d782876dbc) and \"Revenue by Customer Class\" (urn:li:glossaryTerm:b2fd91.26e268c3-3688-4281-949e-8c1aa2600c02) still document SUM(order_total) against order_entry_db.analytics.order_details; order_details.order_total still carries a PII glossary term, mistagging on a money column.",
+    "root_cause": "Deployed dbt model b2fd91.ORDER_ENTRY_DB.analytics.order_details selects o.order_total from source('order_entry','orders'), which renamed that column to order_amount months ago, so order_total lands all-NULL and SUMX(ORDER_DETAILS[order_total]) = 0 in PowerBI. The one-line alias fix is correct and has been applied on six prior nights; it does not survive because the upstream refactor branch overwrites the model and no CI test blocks a build referencing orders.order_total. Tonight established the second half of the recurrence: the Nightshift guards meant to catch the regression are column-PRESENCE assertions that have never been evaluated and that cannot detect an all-NULL column, so the break stays invisible until Finance reports it.",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:87aa96bc-8c15-477e-b0aa-520215a630eb",
+    "guard_urn": "urn:li:assertion:nightshift-9e2ce465787f68337cc3",
+    "minutes_to_root_cause": 2.0,
+    "recorded_at_ms": 1786309982051
+  },
+  {
+    "dataset_urn": "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+    "failure_mode": "silent-schema-change",
+    "summary": "EIGHTH occurrence (c9f3ffe7, 941adb6a, 045d5439, 904f7975, 93625956, 061a5777, 87aa96bc, now b8b2bd91). NO RE-DIAGNOSIS \u2014 the trace is settled in 93625956 (full) and 87aa96bc (why the guards are useless). Tonight: exactly 1 catalog read, ~2 min. Deployed order_details header CTE still `o.order_total,`. Alias re-applied + rebuild + 7-day backfill. Data restored.\n\nNEW FINDING TONIGHT \u2014 THE PIPELINE IS NOT THE ONLY THING SERVING order_total. Night 7 closed the loop on why detection fails; tonight closes the loop on why the rename keeps getting re-introduced by humans who are not malicious. The catalog itself still instructs people to write the broken column:\n- Glossary term \"Order Total\" (urn:li:glossaryTerm:b2fd91.42266719-3cab-42b8-a8d2-49d782876dbc), technical owner Fiona Green, literally documents \"Total revenue: SELECT SUM(order_total) FROM order_entry_db.analytics.order_details\".\n- Glossary term \"Revenue by Customer Class\" (urn:li:glossaryTerm:b2fd91.26e268c3-3688-4281-949e-8c1aa2600c02), same owner, prescribes \"Required SQL structure: SUM(order_total) ... FROM order_entry_db.analytics.order_details\".\n- The dbt model's own published description table documents `order_total NUMBER \u2014 Total monetary value of the order`, with no mention of the upstream rename.\n- order_details.order_total carries a PII glossary term (mistagging on a money column).\nAnyone refactoring upstream reads this documentation, sees order_total as the blessed revenue column, and has no signal that the source column is now order_amount. The docs and the source disagree, and the docs are the ones people read. Fixing them is cheap and is plausibly part of why the refactor branch keeps reverting the alias. Treat this as a real contributing cause, not a chronic nit \u2014 it has been logged as a \"follow-up\" for 3 nights and never actioned.\n\nNEXT NIGHT PROTOCOL \u2014 unchanged confirm, sharpened follow-up:\n1. ONE read: deployed logic of urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD). If it says `o.order_total,` it is this incident. Read nothing else.\n2. Re-apply `o.order_amount AS order_total`, rebuild, backfill 7 days.\n3. Do NOT investigate. Do NOT re-walk lineage. Do NOT raise another presence guard \u2014 guard_column returns the same URN and cannot express a value-level check. Ignore dataset health on this path; the assertions have never been evaluated.\n4. Spend the shift on the three artifacts Nightshift cannot build:\n   (i) dbt source column test on order_entry.orders.order_amount + CI rule failing any model referencing orders.order_total;\n   (ii) VALUE-level dbt tests on order_details.order_total \u2014 not_null, and SUM over trailing 7 days > 0 \u2014 run on every rebuild;\n   (iii) NEW: correct the two glossary terms and the model description to reference order_amount at source, and strip the PII term off order_total. Owner of both terms is Fiona Green (fiona.green@example.com) \u2014 she is also a technical owner of the model, so this is one person who can close it.\nChase CI config holders directly: Data Platform Team (data-platform@example.com), Julia Novak (julia.novak@example.com), Fiona Green (fiona.green@example.com). Owner escalations (michael2@example.com x2, Ian Chen x1) have all failed.",
+    "root_cause": "Deployed dbt model b2fd91.ORDER_ENTRY_DB.analytics.order_details selects o.order_total from source('order_entry','orders'), which renamed that column to order_amount months ago, so order_total materializes all-NULL and SUMX(ORDER_DETAILS[order_total]) = 0 in PowerBI. The one-line alias fix is correct and has now been applied on seven prior nights; it does not persist because the upstream refactor branch overwrites the model and no CI test blocks a build referencing orders.order_total. Two amplifiers, both established by Nightshift and both requiring human action: the Nightshift guards are column-PRESENCE assertions that have never been evaluated and cannot see an all-NULL column (night 7), and the catalog's own glossary terms and model documentation still prescribe SUM(order_total) against order_details with no mention of the rename, so engineers refactoring upstream are actively told the wrong column is correct (night 8).",
+    "upstream_urn": "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)",
+    "changed_field": "order_total",
+    "lineage_path": [
+      "urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:dbt,b2fd91.ORDER_ENTRY_DB.analytics.order_details,PROD)",
+      "urn:li:dataset:(urn:li:dataPlatform:snowflake,b2fd91.order_entry_db.order_entry.orders,PROD)"
+    ],
+    "fix_url": null,
+    "incident_urn": "urn:li:incident:b8b2bd91-fc05-4522-87b8-e314182ce96f",
+    "guard_urn": "urn:li:assertion:nightshift-9e2ce465787f68337cc3",
+    "minutes_to_root_cause": 2.0,
+    "recorded_at_ms": 1786310132684
+  }
+]
