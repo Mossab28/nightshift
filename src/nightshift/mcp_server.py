@@ -53,15 +53,31 @@ def recall_incident_memory(dataset_urn: str) -> str:
                 "note": "No prior Nightshift memory on this asset. Investigate from lineage.",
             }
         )
+    latest = postmortems[-1]
+    verification: list[str] = []
+    if latest.upstream_urn and latest.changed_field:
+        verification.append(
+            f"1. Read the schema of {latest.upstream_urn} and check the state of "
+            f"`{latest.changed_field}`."
+        )
+    if latest.lineage_path:
+        verification.append(
+            "2. Read the deployed SQL of the transformation between the upstream "
+            "and the victim (the lineage path below is already known -- do NOT "
+            "re-walk it)."
+        )
     return json.dumps(
         {
             "dataset_urn": dataset_urn,
             "known_incidents": len(postmortems),
             "postmortems": [p.__dict__ for p in postmortems],
             "note": (
-                "This asset has been broken before. Verify whether the remembered "
-                "root cause explains today's symptom before investigating anew."
+                "This asset has been broken before. Verify the remembered root "
+                "cause with the reads below -- at most two -- then move straight "
+                "to the fix. The lineage path is already recorded; re-walking it "
+                "wastes the night."
             ),
+            "verification_protocol": verification,
         },
         indent=2,
     )

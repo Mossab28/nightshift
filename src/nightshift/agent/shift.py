@@ -131,6 +131,7 @@ async def _run(symptom: str, entry_point_urn: str, console: Console) -> ShiftRep
             "mcp__datahub",  # the whole read surface
             "mcp__nightshift",  # memory + write-back
         ],
+        disallowed_tools=["Bash", "WebSearch", "WebFetch", "Write", "Edit"],
         permission_mode="bypassPermissions",
         max_turns=40,
     )
