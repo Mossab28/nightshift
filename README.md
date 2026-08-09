@@ -2,7 +2,9 @@
 
 **The on-call data team that gets smarter every night.**
 
-[Live demo](https://nightshift.51-91-121-153.sslip.io) · [Break it yourself](https://try.nightshift.51-91-121-153.sslip.io) · Video (coming) · [Upstream PR datahub-skills#126](https://github.com/datahub-project/datahub-skills/pull/126) · [Apache 2.0](LICENSE)
+[Live demo](https://nightshift.51-91-121-153.sslip.io) · [Break it yourself](https://try.nightshift.51-91-121-153.sslip.io) · [JUDGING.md (60s)](JUDGING.md) · [Upstream PR datahub-skills#126](https://github.com/datahub-project/datahub-skills/pull/126) · [Apache 2.0](LICENSE)
+
+**try.*** is the judge sandbox (break / wake / restore on a real graph). **/app** is the connected war room (your DataHub, Sentinel, history). Same agent loop; different entry.
 
 ![Nightshift landing](docs/media/landing.png)
 
@@ -103,6 +105,18 @@ Nobody presses the button. The Sentinel fingerprints the schema of every
 watched dataset on an interval. When a column moves (renamed, dropped, or
 retyped), it names the drift and wakes the night shift itself
 (`trigger: sentinel`). The loop closes without a human pager at all.
+
+## Authority boundaries
+
+- **Agent may write** (Nightshift MCP): incidents, documentation, structured
+  memory, failure tags, column-presence EXTERNAL assertions, draft fix PR.
+- **Still human:** merge the PR, value-level tests, production deploy.
+- **Memory lives in DataHub aspects**, not in chat history. Nightshift is
+  stateless; the graph remembers across nights and model changes.
+- Presence guards assert the column exists in the catalog. They are not
+  value-level quality tests (not-null / sum > 0 stay in dbt / CI).
+
+Claims in this README are gated by `python scripts/verify_judging_evidence.py`.
 
 ## Quick start
 

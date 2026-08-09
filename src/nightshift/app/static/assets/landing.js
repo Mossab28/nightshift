@@ -515,6 +515,7 @@
     if (ev.kind === "tool") {
       node = el("div", "msg msg--tool");
       node.innerHTML =
+        '<div class="msg__who">tool</div>' +
         '<div class="msg__tool">' +
         '<span class="msg__tool-name' +
         (ev.tone === "memory" ? " is-memory" : "") +
@@ -527,7 +528,7 @@
         ev.kind === "pager" ? "pager" : ev.kind === "report" ? "report" : "agent";
       node = el("div", "msg msg--" + role);
       node.appendChild(el("div", "msg__who", ev.who));
-      node.appendChild(el("div", "msg__bubble", ev.text));
+      node.appendChild(el("div", "msg__body", ev.text));
     }
     stream.appendChild(node);
     requestAnimationFrame(function () { node.classList.add("on"); });

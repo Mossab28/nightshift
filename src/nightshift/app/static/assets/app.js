@@ -625,11 +625,12 @@ async function viewWarroom(shiftId) {
         if (aspect) lightAspect(aspect);
         if (css === "thought") {
           return `<div class="wr-msg wr-msg--agent">
-            <div class="wr-msg__who"><span>☽ nightshift</span><time>${esc(stamp)}</time></div>
-            <div class="wr-msg__bubble">${esc(ev.detail || "")}</div>
+            <div class="wr-msg__who"><span>nightshift</span><time>${esc(stamp)}</time></div>
+            <div class="wr-msg__body">${esc(ev.detail || "")}</div>
           </div>`;
         }
         return `<div class="wr-msg wr-msg--tool">
+          <div class="wr-msg__who"><span>tool</span><time>${esc(stamp)}</time></div>
           <div class="wr-tool ${css}">
             <span class="wr-tool__name">${esc(label)}</span>
             <span class="wr-tool__stamp">${esc(stamp)}</span>

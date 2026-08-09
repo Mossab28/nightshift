@@ -213,66 +213,53 @@ LIVE_PAGE = r"""<!doctype html>
   .war__stream {
     flex: 1;
     overflow-y: auto;
-    padding: 18px 20px 12px;
+    padding: 18px 22px 14px;
     display: flex;
     flex-direction: column;
     gap: 14px;
     scroll-behavior: smooth;
   }
   .msg {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    max-width: 92%;
+    display: grid;
+    grid-template-columns: 108px minmax(0, 1fr);
+    column-gap: 14px;
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
   }
-  .msg--pager { align-self: flex-end; max-width: 78%; }
-  .msg--agent { align-self: flex-start; }
-  .msg--tool { align-self: flex-start; max-width: 96%; }
-  .msg--report { align-self: stretch; max-width: 100%; }
   .msg__who {
     font-family: var(--mono);
     font-size: 11px;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+    letter-spacing: 0.04em;
     color: var(--slate-dim);
+    padding-top: 3px;
+    text-align: right;
+    white-space: nowrap;
   }
-  .msg--pager .msg__who { color: var(--alarm); text-align: right; }
+  .msg--pager .msg__who { color: var(--alarm); }
   .msg--agent .msg__who { color: var(--moon); }
-  .msg__bubble {
-    padding: 12px 14px;
-    border-radius: 14px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid var(--rule-soft);
+  .msg--report .msg__who { color: var(--write); }
+  .msg--tool .msg__who { color: var(--tool); }
+  .msg__body {
     font-size: 14.5px;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink-2);
     white-space: pre-wrap;
   }
-  .msg--pager .msg__bubble {
-    background: rgba(255, 107, 107, 0.08);
-    border-color: rgba(255, 107, 107, 0.25);
+  .msg--pager .msg__body,
+  .msg--agent .msg__body { color: var(--ink); }
+  .msg--report .msg__body {
     color: var(--ink);
-    border-bottom-right-radius: 4px;
-  }
-  .msg--agent .msg__bubble {
-    background: rgba(255, 215, 110, 0.06);
-    border-color: rgba(255, 215, 110, 0.18);
-    color: var(--ink);
-    border-bottom-left-radius: 4px;
-  }
-  .msg--report .msg__bubble {
-    background: rgba(95, 210, 154, 0.06);
-    border-color: rgba(95, 210, 154, 0.22);
-    border-left: 3px solid var(--write);
+    border-left: 2px solid var(--write);
+    padding-left: 12px;
   }
   .msg__tool {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 4px 12px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    background: rgba(0, 0, 0, 0.35);
-    border: 1px solid var(--rule-soft);
+    padding: 6px 0 6px 12px;
+    border-left: 1px solid var(--rule-soft);
+    background: transparent;
     font-family: var(--mono);
     font-size: 12.5px;
   }
@@ -359,8 +346,9 @@ LIVE_PAGE = r"""<!doctype html>
   <div class="brand">
     <h1><span class="moon">&#9789;</span> Nightshift <span class="slash">/ break it yourself</span></h1>
   </div>
-  <p class="sub">A real DataHub graph. A real agent. Rename a column upstream, tell nobody,
-  and watch the night shift find it - or remember it.</p>
+  <p class="sub">Judge sandbox — not the SaaS war room. Real DataHub + real Claude agent.
+  Break the pipeline, wake the shift, watch write-back land. For your connected workspace use
+  <a href="https://nightshift.51-91-121-153.sslip.io/app">/app</a>.</p>
 
   <div class="controls">
     <button id="break" type="button">Break the pipeline</button>
@@ -498,7 +486,7 @@ function renderStream(s) {
     parts.push(
       `<div class="msg msg--pager">` +
       `<div class="msg__who">pager</div>` +
-      `<div class="msg__bubble">${esc(pagerText(s.planted))}</div></div>`
+      `<div class="msg__body">${esc(pagerText(s.planted))}</div></div>`
     );
   }
 
@@ -514,13 +502,15 @@ function renderStream(s) {
     if (css === "thought") {
       parts.push(
         `<div class="msg msg--agent">` +
-        `<div class="msg__who">☽ nightshift · ${esc(stamp)}</div>` +
-        `<div class="msg__bubble">${esc(ev.detail || "")}</div></div>`
+        `<div class="msg__who">nightshift</div>` +
+        `<div class="msg__body">${esc(ev.detail || "")}<div style="opacity:.45;font:11px var(--mono);margin-top:4px">${esc(stamp)}</div></div></div>`
       );
     } else {
       const tone = css === "memory" ? "is-memory" : css === "write" ? "is-write" : "";
       parts.push(
-        `<div class="msg msg--tool"><div class="msg__tool">` +
+        `<div class="msg msg--tool">` +
+        `<div class="msg__who">tool</div>` +
+        `<div class="msg__tool">` +
         `<span class="msg__tool-name ${tone}">${esc(label)}</span>` +
         `<span class="msg__tool-stamp">${esc(stamp)}</span>` +
         `<span class="msg__tool-detail">${esc(ev.detail || "")}</span>` +
@@ -532,8 +522,8 @@ function renderStream(s) {
   if (s.conclusion) {
     parts.push(
       `<div class="msg msg--report">` +
-      `<div class="msg__who">morning report</div>` +
-      `<div class="msg__bubble">${esc(s.conclusion)}</div></div>`
+      `<div class="msg__who">report</div>` +
+      `<div class="msg__body">${esc(s.conclusion)}</div></div>`
     );
     setStep("fix");
   }

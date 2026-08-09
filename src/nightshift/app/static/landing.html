@@ -26,18 +26,19 @@
       <a class="nav__link" href="https://github.com/Mossab28/nightshift">GitHub</a>
     </nav>
     <span class="nav__rule" aria-hidden="true"></span>
-    <a class="btn btn--ghost btn--sm" href="/app">Open app</a>
-    <a class="btn btn--solid btn--sm" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline</a>
+    <a class="btn btn--ghost btn--sm" href="/app" title="Connected war room">War room</a>
+    <a class="btn btn--solid btn--sm" href="https://try.nightshift.51-91-121-153.sslip.io" title="One-click judge demo">Break it</a>
   </div>
 </header>
 
 <header class="hero" id="top">
   <canvas id="sky" class="hero__sky" aria-hidden="true"></canvas>
+  <div class="hero__aurora" aria-hidden="true"></div>
   <div class="shell hero__lead hero__lead--center">
     <p class="eyebrow eyebrow--mono eyebrow--center">&gt; datahub · on-call agents</p>
     <h1 class="display display--center" id="headline">
-      <span class="display__dim">An investigation</span><br>
-      becomes a <span class="display__ink">lookup.</span>
+      <span class="display__line" data-split>An investigation</span><br>
+      <span class="display__line">becomes a <span class="display__ink" data-split-ink>lookup.</span></span>
     </h1>
     <p class="lede lede--center">
       Claude agents on your DataHub graph. They take the pager, fix the break,
@@ -47,7 +48,11 @@
       <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline yourself</a>
       <a class="btn btn--ghost" href="#warroom">Watch a shift</a>
     </div>
-    <p class="fineprint fineprint--center">Apache 2.0 · MCP write surface upstreamed · no install to try</p>
+    <p class="fineprint fineprint--center">
+      <span class="fineprint__pair"><b>try.*</b> = one-click demo</span>
+      <span class="fineprint__dot" aria-hidden="true">·</span>
+      <span class="fineprint__pair"><b>/app</b> = your connected war room</span>
+    </p>
     <p class="caption hero__caption" id="sky-caption" aria-live="polite">The graph is calm.</p>
   </div>
 </header>
@@ -229,13 +234,13 @@
         <p class="eyebrow eyebrow--mono eyebrow--center">&gt; put the night on shift</p>
         <h2 class="display display--sm display--center"><span class="moon" aria-hidden="true">☽</span> Break it. Watch it learn.</h2>
         <div class="hero__actions hero__actions--center">
-          <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">Break a pipeline yourself</a>
-          <a class="btn btn--ghost" href="/app">Open the war room</a>
+          <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">try.* · break it live</a>
+          <a class="btn btn--ghost" href="/app">/app · open war room</a>
         </div>
         <p class="fineprint fineprint--center">
-          <a href="https://github.com/datahub-project/datahub-skills/pull/126">Upstream PR #126</a>
+          <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md · 60s</a>
+          · <a href="https://github.com/datahub-project/datahub-skills/pull/126">Upstream PR #126</a>
           · <a href="https://github.com/Mossab28/nightshift">GitHub</a>
-          · Built on the DataHub MCP Server
         </p>
       </div>
     </div>
@@ -251,5 +256,6 @@
 </footer>
 
 <script src="/assets/landing.js"></script>
+<script type="module" src="/assets/hero-motion.js"></script>
 </body>
 </html>
