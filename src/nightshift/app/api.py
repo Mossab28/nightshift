@@ -373,6 +373,101 @@ def get_shift(
         }
 
 
+# --------------------------------------------------------- live pipeline
+# Real Break → Wake → Restore on the workspace DataHub (same scenario as try.*,
+# no mocks). Planted state is per-workspace in process memory.
+
+
+@router.get("/workspaces/{workspace_id}/live")
+def live_state(workspace_id: str, user: User = Depends(_current_user)) -> dict:
+    from . import live_pipeline
+
+    with SessionFactory() as db:
+        w = _workspace_of(user, workspace_id, db)
+        running = (
+            db.query(Shift)
+            .filter_by(workspace_id=workspace_id, status="running")
+            .count()
+        )
+        gms_url = w.gms_url or ""
+        token = (
+            decrypt_token(w.gms_token_encrypted) if w.gms_token_encrypted else ""
+        )
+    planted = live_pipeline.get_planted(workspace_id)
+    return {
+        "connected": bool(gms_url),
+        "planted": planted,
+        "shift_running": running > 0,
+        "targets": live_pipeline.targets(),
+        "gms_url": gms_url,
+        "has_token": bool(token),
+    }
+
+
+def _workspace_gms(w: Workspace) -> tuple[str, str]:
+    if not w.gms_url:
+        raise HTTPException(422, "connect DataHub in Settings first")
+    token = decrypt_token(w.gms_token_encrypted) if w.gms_token_encrypted else ""
+    return w.gms_url, token
+
+
+@router.post("/workspaces/{workspace_id}/live/break")
+def live_break(workspace_id: str, user: User = Depends(_current_user)) -> dict:
+    from . import live_pipeline
+
+    with SessionFactory() as db:
+        w = _workspace_of(user, workspace_id, db)
+        if (
+            db.query(Shift)
+            .filter_by(workspace_id=workspace_id, status="running")
+            .count()
+        ):
+            raise HTTPException(409, "a shift is already running")
+        if live_pipeline.get_planted(workspace_id):
+            raise HTTPException(409, "already broken -- wake the night shift")
+        gms_url, token = _workspace_gms(w)
+    planted = live_pipeline.break_on_workspace(gms_url, token)
+    live_pipeline.set_planted(workspace_id, planted)
+    return {"broken": True, **planted}
+
+
+@router.post("/workspaces/{workspace_id}/live/restore")
+def live_restore(workspace_id: str, user: User = Depends(_current_user)) -> dict:
+    from . import live_pipeline
+
+    with SessionFactory() as db:
+        w = _workspace_of(user, workspace_id, db)
+        if (
+            db.query(Shift)
+            .filter_by(workspace_id=workspace_id, status="running")
+            .count()
+        ):
+            raise HTTPException(409, "shift is still running -- wait for it to finish")
+        gms_url, token = _workspace_gms(w)
+    live_pipeline.restore_on_workspace(gms_url, token)
+    live_pipeline.set_planted(workspace_id, None)
+    return {"restored": True, "note": "The graph keeps its memories."}
+
+
+@router.post("/workspaces/{workspace_id}/live/wake")
+def live_wake(workspace_id: str, user: User = Depends(_current_user)) -> dict:
+    """One-click wake after a real break: starts a normal agent shift on the graph."""
+    from . import live_pipeline
+
+    planted = live_pipeline.get_planted(workspace_id)
+    if not planted:
+        raise HTTPException(409, "nothing is broken -- break the pipeline first")
+    with SessionFactory() as db:
+        _workspace_of(user, workspace_id, db)
+    shift_id = run_shift_for_workspace(
+        workspace_id,
+        planted["symptom"],
+        planted["victim_urn"],
+        trigger="manual",
+    )
+    return {"shift_id": shift_id, "started": True}
+
+
 # ------------------------------------------------------------------ memory
 
 
