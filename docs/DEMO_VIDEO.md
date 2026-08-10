@@ -86,17 +86,21 @@ les longueurs au montage — parle quand il se passe quelque chose.**
 > cause, proven. And then it writes everything back into DataHub, for real:
 > the incident, the postmortem, a guard on the column that broke.
 >
-> (quand le morning report apparaît)
+> (quand le morning report apparaît — lis-le en diagonale à voix haute, il
+> dit exactement ça :)
 >
-> And there's the morning report. Root cause: the rename. The fix: one line
-> in the dbt model. The numbers on this: first night, cold, fourteen tool
-> calls, two point two minutes. Tonight, from memory: five calls, one point
-> one. An investigation becomes a lookup.
+> And there's the morning report. Look at the first line: it started from
+> memory, not from lineage. It verified the cause in exactly the two catalog
+> reads the previous postmortem told it to make. Root cause: the rename.
+> The fix: one line in the dbt model, and the draft PR is already open.
+> First time we hit this break, cold, it took fourteen tool calls. From
+> memory, it's a handful. An investigation becomes a lookup.
 
 ## Étape 7 — La preuve dans DataHub
 
-**Ouvre l'onglet DataHub (http://localhost:19002 — connecte-toi datahub /
-datahub avant de filmer). Va sur le dataset order_details : onglet
+**AVANT de filmer : ouvre http://localhost:19002 et connecte-toi (datahub /
+datahub) — la session tient, tu n'auras plus l'écran de login pendant la
+prise. Pendant la prise : va sur le dataset order_details : onglet
 Incidents, puis Documentation, puis Validation. Trois plans courts.**
 
 > But here's my favorite part. Go into DataHub itself. Boom — the incident,
