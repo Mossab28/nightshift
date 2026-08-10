@@ -545,7 +545,13 @@ a { color: inherit; text-decoration: none; }
  color: var(--slate-dim);
  margin-left: 8px;
 }
-.slack .msg { font-size: 15px; color: var(--ink-2); }
+.slack__text {
+  font-size: 15px;
+  color: var(--blotter-ink-2, var(--ink-2));
+  line-height: 1.45;
+  opacity: 1;
+  transform: none;
+}
 
 /* ---------- shift rail ---------------------------------------------- */
 
@@ -972,73 +978,74 @@ a { color: inherit; text-decoration: none; }
  scroll-behavior: smooth;
 }
 
-/* Transcript identity (Claude Code), not chat bubbles */
-.msg {
- display: grid;
- grid-template-columns: 92px minmax(0, 1fr);
- column-gap: 14px;
- row-gap: 4px;
- width: 100%;
- max-width: 100%;
- align-self: stretch;
- opacity: 0;
- transform: translateY(6px);
- transition: opacity 280ms var(--ease-settle), transform 280ms var(--ease-settle);
+/* Transcript identity (Claude Code), not chat bubbles.
+   Scoped under .war__stream so Slack / sentinel .msg never inherit opacity:0. */
+.war__stream .msg {
+  display: grid;
+  grid-template-columns: 92px minmax(0, 1fr);
+  column-gap: 14px;
+  row-gap: 4px;
+  width: 100%;
+  max-width: 100%;
+  align-self: stretch;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 280ms var(--ease-settle), transform 280ms var(--ease-settle);
 }
-.msg.on { opacity: 1; transform: none; }
-.msg--tool { grid-template-columns: 92px minmax(0, 1fr); }
+.war__stream .msg.on { opacity: 1; transform: none; }
+.war__stream .msg--tool { grid-template-columns: 92px minmax(0, 1fr); }
 
-.msg__who {
- font-family: var(--font-mono);
- font-size: 11px;
- letter-spacing: 0.04em;
- color: var(--slate-dim);
- padding-top: 3px;
- text-align: right;
- white-space: nowrap;
+.war__stream .msg__who {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--slate-dim);
+  padding-top: 3px;
+  text-align: right;
+  white-space: nowrap;
 }
-.msg--pager .msg__who { color: var(--alarm); }
-.msg--agent .msg__who { color: var(--moon); }
-.msg--report .msg__who { color: var(--write); }
-.msg--tool .msg__who { color: var(--tool); }
+.war__stream .msg--pager .msg__who { color: var(--alarm); }
+.war__stream .msg--agent .msg__who { color: var(--moon); }
+.war__stream .msg--report .msg__who { color: var(--write); }
+.war__stream .msg--tool .msg__who { color: var(--tool); }
 
-.msg__body {
- font-size: 14.5px;
- line-height: 1.55;
- color: var(--ink-2);
- white-space: pre-wrap;
- padding: 0;
- border: 0;
- background: none;
- border-radius: 0;
+.war__stream .msg__body {
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 0;
 }
-.msg--pager .msg__body { color: var(--ink); }
-.msg--agent .msg__body { color: var(--ink); }
-.msg--report .msg__body {
- color: var(--ink);
- border-left: 2px solid var(--write);
- padding-left: 12px;
+.war__stream .msg--pager .msg__body { color: var(--ink); }
+.war__stream .msg--agent .msg__body { color: var(--ink); }
+.war__stream .msg--report .msg__body {
+  color: var(--ink);
+  border-left: 2px solid var(--write);
+  padding-left: 12px;
 }
 
-.msg__tool {
- display: grid;
- grid-template-columns: auto 1fr;
- gap: 6px 10px;
- align-items: baseline;
- padding: 8px 0 8px 12px;
- border-left: 1px solid var(--rule-soft);
- border-radius: 0;
- background: transparent;
- font-family: var(--font-mono);
- font-size: 12.5px;
+.war__stream .msg__tool {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 6px 10px;
+  align-items: baseline;
+  padding: 8px 0 8px 12px;
+  border-left: 1px solid var(--rule-soft);
+  border-radius: 0;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
 }
-.msg__tool-name { color: var(--tool); font-weight: 500; }
-.msg__tool-name.is-memory { color: var(--memory); }
-.msg__tool-name.is-write { color: var(--write); }
-.msg__tool-detail {
- color: var(--slate-dim);
- word-break: break-all;
- grid-column: 1 / -1;
+.war__stream .msg__tool-name { color: var(--tool); font-weight: 500; }
+.war__stream .msg__tool-name.is-memory { color: var(--memory); }
+.war__stream .msg__tool-name.is-write { color: var(--write); }
+.war__stream .msg__tool-detail {
+  color: var(--slate-dim);
+  word-break: break-all;
+  grid-column: 1 / -1;
 }
 
 .war__composer {
@@ -1308,8 +1315,8 @@ a { color: inherit; text-decoration: none; }
 
 @media (max-width: 1100px) {
  .war { grid-template-columns: 1fr; min-height: 560px; }
- .msg { grid-template-columns: 72px minmax(0, 1fr); column-gap: 10px; }
- .msg__who { font-size: 10px; }
+  .war__stream .msg { grid-template-columns: 72px minmax(0, 1fr); column-gap: 10px; }
+  .war__stream .msg__who { font-size: 10px; }
  .war__rail { display: none; }
  .war__graph {
  border-left: none;
@@ -1335,7 +1342,7 @@ a { color: inherit; text-decoration: none; }
 
 @media (prefers-reduced-motion: reduce) {
  html { scroll-behavior: auto; }
- .rv, .chip, .watch-log .wl, .msg { opacity: 1; transform: none; transition: none; }
+  .rv, .chip, .watch-log .wl, .war__stream .msg { opacity: 1; transform: none; transition: none; }
  .pulse { animation: none; }
  .btn:active { transform: none; }
 }
@@ -1394,8 +1401,10 @@ main .war__top,
 main .war__composer,
 main .war__rail,
 main .war__graph {
- background: #eef0f4;
+  background: #eef0f4;
 }
+main .war__composer { background: #e8ebf0; }
+main .slack__text { color: var(--blotter-ink); }
 main .war__status.is-live {
  color: var(--blotter-moon);
  background: rgba(138, 104, 24, 0.1);
