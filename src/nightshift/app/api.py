@@ -15,7 +15,7 @@ from pydantic import BaseModel, EmailStr
 
 from .db import Session as DbSession
 from .db import Shift, User, Watch, Workspace, make_session_factory
-from .security import decrypt_token, encrypt_token, hash_password, verify_password
+from .security import decrypt_token, encrypt_token, hash_password
 
 router = APIRouter(prefix="/api")
 SessionFactory = make_session_factory()
@@ -30,16 +30,31 @@ class Credentials(BaseModel):
     password: str
 
 
-#: Public demo mode: everyone lands signed in on the demo account. Set
-#: NIGHTSHIFT_PUBLIC_USER to that account's email to enable; unset = real auth.
-def _public_user() -> User | None:
+#: The app is open to the public: no sign-in gate. Prefer
+#: NIGHTSHIFT_PUBLIC_USER when set; otherwise the oldest account; otherwise
+#: bootstrap a local public workspace.
+def _public_user() -> User:
     import os
 
     email = os.environ.get("NIGHTSHIFT_PUBLIC_USER", "").lower()
-    if not email:
-        return None
     with SessionFactory() as db:
-        return db.query(User).filter_by(email=email).first()
+        if email:
+            user = db.query(User).filter_by(email=email).first()
+            if user:
+                return user
+        user = db.query(User).order_by(User.created_at.asc()).first()
+        if user:
+            return user
+        user = User(
+            email=email or "public@nightshift.local",
+            password_hash=hash_password(os.urandom(24).hex()),
+        )
+        db.add(user)
+        db.commit()
+        workspace = Workspace(owner_id=user.id, name="Public workspace")
+        db.add(workspace)
+        db.commit()
+        return user
 
 
 def _current_user(request: Request) -> User:
@@ -53,42 +68,29 @@ def _current_user(request: Request) -> User:
                 user = db.get(User, session.user_id)
                 if user:
                     return user
-    public = _public_user()
-    if public:
-        return public
-    raise HTTPException(401, "not signed in")
+    return _public_user()
 
 
 @router.post("/auth/register")
-def register(creds: Credentials, response: Response) -> dict:
+def register(_creds: Credentials, response: Response) -> dict:
+    """Auth is disabled; return the public workspace session."""
+    user = _public_user()
     with SessionFactory() as db:
-        if db.query(User).filter_by(email=creds.email.lower()).first():
-            raise HTTPException(409, "an account already exists for this email")
-        if len(creds.password) < 8:
-            raise HTTPException(422, "password must be at least 8 characters")
-        user = User(email=creds.email.lower(), password_hash=hash_password(creds.password))
-        db.add(user)
-        db.commit()
-        workspace = Workspace(owner_id=user.id, name="My data team")
-        db.add(workspace)
         session = DbSession(user_id=user.id)
         db.add(session)
         db.commit()
         response.set_cookie(COOKIE, session.token, httponly=True, samesite="lax")
-        return {"user": {"email": user.email}, "workspace_id": workspace.id}
+        workspaces = db.query(Workspace).filter_by(owner_id=user.id).all()
+        return {
+            "user": {"email": user.email},
+            "workspace_id": workspaces[0].id if workspaces else None,
+        }
 
 
 @router.post("/auth/login")
-def login(creds: Credentials, response: Response) -> dict:
-    with SessionFactory() as db:
-        user = db.query(User).filter_by(email=creds.email.lower()).first()
-        if not user or not verify_password(creds.password, user.password_hash):
-            raise HTTPException(401, "wrong email or password")
-        session = DbSession(user_id=user.id)
-        db.add(session)
-        db.commit()
-        response.set_cookie(COOKIE, session.token, httponly=True, samesite="lax")
-        return {"user": {"email": user.email}}
+def login(_creds: Credentials, response: Response) -> dict:
+    """Auth is disabled; return the public workspace session."""
+    return register(_creds, response)
 
 
 @router.post("/auth/logout")
@@ -111,6 +113,7 @@ def me(user: User = Depends(_current_user)) -> dict:
         return {
             "email": user.email,
             "workspaces": [{"id": w.id, "name": w.name} for w in workspaces],
+            "public": True,
         }
 
 

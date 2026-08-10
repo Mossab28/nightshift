@@ -18,11 +18,6 @@ async function api(path, opts = {}) {
  method: opts.method || (opts.body ? "POST" : "GET"),
  body: opts.body ? JSON.stringify(opts.body) : undefined,
  });
- if (res.status === 401) {
- state.email = null;
- if (location.hash !== "#/login") location.hash = "#/login";
- throw new Error("not signed in");
- }
  const data = await res.json().catch(() => ({}));
  if (!res.ok) {
  const err = new Error(typeof data.detail === "string" ? data.detail : res.statusText);
@@ -87,8 +82,6 @@ function shell(active, contentNode, opts = {}) {
  ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<a class="ws ws--home" href="/" title="Home" aria-label="Home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>`}
  <span class="spacer"></span>
  ${desk ? "" : `<button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>`}
- <span class="who"></span>
- <button class="btn-ghost" id="logout">Sign out</button>
  </header>
  <div class="frame">
  ${desk ? "" : `<nav class="sidenav">
@@ -98,13 +91,6 @@ function shell(active, contentNode, opts = {}) {
  <main class="content${opts.wide || desk ? " content--wide" : ""}"></main>
  </div>
  </div>`);
- // The topbar slot is a Home link back to the landing, not the workspace name.
- root.querySelector(".who").textContent = state.email || "";
- root.querySelector("#logout").onclick = async () => {
- await api("/auth/logout", { method: "POST" }).catch(() => {});
- state.email = null;
- location.hash = "#/login";
- };
  const help = root.querySelector("#help-tour");
  if (help) {
  help.onclick = () => {
@@ -120,70 +106,12 @@ function shell(active, contentNode, opts = {}) {
 
 async function ensureSession() {
  if (state.email && state.wsId) return true;
- try {
  const me = await api("/auth/me");
  state.email = me.email;
  state.workspaces = me.workspaces;
  state.wsId = me.workspaces[0] && me.workspaces[0].id;
+ if (!state.wsId) throw new Error("no public workspace configured");
  return true;
- } catch {
- return false;
- }
-}
-
-/* ------------------------------------------------------------------ login */
-
-function viewLogin() {
- const node = el(`
- <div class="login-wrap">
- <div class="plate login-card">
- <span class="wordmark"><span class="moon">&#9789;</span>Nightshift</span>
- <p class="tagline">The on-call data team that gets smarter every night.</p>
- <div class="tabs">
- <button class="active" data-tab="login">Sign in</button>
- <button data-tab="register">Create account</button>
- </div>
- <form>
- <label class="field"><span>Email</span>
- <input type="email" name="email" autocomplete="email" required></label>
- <label class="field"><span>Password</span>
- <input type="password" name="password" autocomplete="current-password" required></label>
- <div class="form-error"></div>
- <button type="submit" class="btn-primary">Sign in</button>
- </form>
- </div>
- </div>`);
- let mode = "login";
- const form = node.querySelector("form");
- const err = node.querySelector(".form-error");
- const submit = form.querySelector('button[type="submit"]');
- node.querySelectorAll(".tabs button").forEach((b) => {
- b.onclick = () => {
- mode = b.dataset.tab;
- node.querySelectorAll(".tabs button").forEach((x) => x.classList.toggle("active", x === b));
- submit.textContent = mode === "login" ? "Sign in" : "Create account";
- err.textContent = "";
- };
- });
- form.onsubmit = async (e) => {
- e.preventDefault();
- err.textContent = "";
- submit.disabled = true;
- try {
- await api("/auth/" + mode, {
- body: { email: form.email.value.trim(), password: form.password.value },
- });
- state.email = null; // force /auth/me refresh
- const next = sessionStorage.getItem("ns_next") || "#/";
- sessionStorage.removeItem("ns_next");
- location.hash = next;
- } catch (ex) {
- err.textContent = ex.message;
- } finally {
- submit.disabled = false;
- }
- };
- app.replaceChildren(node);
 }
 
 /* ------------------------------------------------------------- wake modal */
@@ -1061,14 +989,23 @@ async function viewSettings() {
 
 async function route() {
  stopPolling();
- const hash = location.hash || "#/";
- if (hash === "#/login") { viewLogin(); return; }
- const ok = await ensureSession();
- if (!ok) {
- if (hash && hash !== "#/" && hash !== "#/login") {
- sessionStorage.setItem("ns_next", hash);
+ let hash = location.hash || "#/";
+ if (hash === "#/login") {
+ location.hash = "#/live";
+ return;
  }
- location.hash = "#/login";
+ try {
+ await ensureSession();
+ } catch (ex) {
+ app.replaceChildren(el(`
+ <div class="shell-root">
+ <header class="topbar">
+ <a href="/" class="wordmark"><span class="moon">&#9789;</span>Nightshift</a>
+ </header>
+ <main class="content" style="padding:32px">
+ <p class="hint err">${esc(ex.message || "could not open the public workspace")}</p>
+ </main>
+ </div>`));
  return;
  }
  const m = hash.match(/^#\/shifts\/(.+)$/);

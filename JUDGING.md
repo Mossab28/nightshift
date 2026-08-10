@@ -4,7 +4,7 @@
 **Live app:** https://nightshift.51-91-121-153.sslip.io 
 **One-click demo:** https://try.nightshift.51-91-121-153.sslip.io 
 **Repo:** https://github.com/Mossab28/nightshift 
-**Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026` 
+**War room (public):** https://nightshift.51-91-121-153.sslip.io/app#/live 
 **Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md) · **Submit pack:** [docs/SUBMIT.md](docs/SUBMIT.md) 
 **dbt fix PR (real work artifact):** https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
@@ -23,7 +23,7 @@ Two surfaces, one product (plus a landing pitch):
 
 1. **0:00** Open [try.*](https://try.nightshift.51-91-121-153.sslip.io/). Click **Break the pipeline**, then **Wake the night shift**.
 2. **0:20** Watch the transcript: Recall → Lineage → Diagnose → Remember → Fix. Right rail lights as DataHub write-back lands (incident, postmortem, guard).
-3. **0:40** Optional: open [/app](https://nightshift.51-91-121-153.sslip.io/app) (demo login above) for the same war-room identity with workspace + Sentinel tour.
+3. **0:40** Optional: open [/app#/live](https://nightshift.51-91-121-153.sslip.io/app#/live) (public, no login) for Break → Wake → Restore on the connected war room.
 4. **0:50** Proof pack: [examples/shift-reports/](examples/shift-reports/) Night 1 vs Night 3, [skills PR #126](https://github.com/datahub-project/datahub-skills/pull/126), dbt draft PR on nightshift-dbt-demo.
 
 Evidence gate (fail-closed):
