@@ -93,16 +93,12 @@
 
  /* --------------------------------------------------------- timeline */
  var LOOP = 22;
- var CAPTIONS = [
- { t: 0.0, text: "The graph is calm." },
- { t: 2.4, text: "Silent rename upstream." },
- { t: 4.6, text: "Memory wakes. Violet first." },
- { t: 5.8, text: "The shift heals the path." },
- { t: 8.2, text: "A guard lands on the origin." },
- { t: 13.8, text: "Same break. Night two." },
- { t: 14.4, text: "Caught. An investigation became a lookup." },
- { t: 18.0, text: "The graph is smarter than tonight found it." },
- ];
+  var CAPTIONS = [
+    { t: 0.0, text: "The graph is calm." },
+    { t: 2.4, text: "Silent rename upstream." },
+    { t: 5.8, text: "The shift heals the path." },
+    { t: 14.4, text: "An investigation became a lookup." },
+  ];
 
  function clamp01(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
  function ease(v) { v = clamp01(v); return v * v * (3 - 2 * v); }
@@ -384,17 +380,46 @@
 
  /* ------------------------------------------------- reveal on scroll */
 
- var io = new IntersectionObserver(function (entries) {
- entries.forEach(function (en) {
- if (!en.isIntersecting) return;
- en.target.classList.add("on");
- io.unobserve(en.target);
- if (en.target.querySelector("[data-count]")) runCounters(en.target);
- });
- }, { threshold: 0.22 });
- document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
- io.observe(el);
- });
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (!en.isIntersecting) return;
+      en.target.classList.add("on");
+      io.unobserve(en.target);
+      if (en.target.querySelector("[data-count]")) runCounters(en.target);
+    });
+  }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
+  document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
+    io.observe(el);
+  });
+  /* Never leave content invisible if IO misses (tall panels, slow paint). */
+  setTimeout(function () {
+    document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
+      el.classList.add("on");
+    });
+  }, 1800);
+
+  /* Dawn ridges open as the desk comes into view */
+  var dawn = document.querySelector(".dawn");
+  var seam = document.querySelector(".desk-seam");
+  var mainEl = document.getElementById("main");
+  if (dawn && mainEl) {
+    var openDawn = function () {
+      dawn.classList.add("is-open");
+      if (seam) seam.classList.add("is-on");
+    };
+    if (reduced) {
+      openDawn();
+    } else {
+      new IntersectionObserver(function (entries) {
+        if (entries[0] && entries[0].isIntersecting) openDawn();
+      }, { threshold: 0.12 }).observe(mainEl);
+      var onHeroScroll = function () {
+        if (window.scrollY > window.innerHeight * 0.35) openDawn();
+      };
+      window.addEventListener("scroll", onHeroScroll, { passive: true });
+      onHeroScroll();
+    }
+  }
 
  function runCounters(root) {
  root.querySelectorAll("[data-count]").forEach(function (el) {
