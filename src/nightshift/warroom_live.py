@@ -1,8 +1,8 @@
 """The live war-room page served by the demo server.
 
 Judge-facing one-click demo: break the pipeline, wake the night shift, restore.
-Murmell grammar matches the landing war-room chat (black ground, floating
-surface, Figtree + IBM Plex Mono, chat stream + write-back rail).
+ChatGPT / Claude style: bubbles + composer. Tools stay collapsed into plain
+language so judges read a conversation, not a tool dump.
 """
 
 LIVE_PAGE = r"""<!doctype html>
@@ -16,502 +16,475 @@ LIVE_PAGE = r"""<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
  :root {
- --paper: #e4e7ec;
+ --bg: #eceff3;
  --surface: #f7f8fa;
- --surface-bar: #eef0f4;
  --ink: #14161c;
- --ink-2: rgba(20, 22, 28, 0.72);
- --slate: rgba(20, 22, 28, 0.55);
- --slate-dim: rgba(20, 22, 28, 0.4);
- --rule-soft: rgba(20, 22, 28, 0.1);
+ --mute: rgba(20, 22, 28, 0.58);
+ --dim: rgba(20, 22, 28, 0.38);
+ --line: rgba(20, 22, 28, 0.1);
  --moon: #8a6818;
- --tool: #2b5f9e;
- --memory: #5c408f;
- --write: #1a6b48;
  --alarm: #a82828;
- --radius: 6px;
+ --ok: #1a6b48;
+ --user: #e8eaef;
+ --assistant: #14161c;
+ --assistant-ink: #f2f3f5;
+ --radius: 14px;
  --font: "Figtree", system-ui, -apple-system, sans-serif;
- --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+ --mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
  --ease: cubic-bezier(0.22, 1, 0.36, 1);
  }
  * { box-sizing: border-box; margin: 0; padding: 0; }
- html, body { min-height: 100%; }
+ html, body { height: 100%; }
  body {
- background: var(--paper);
+ background: var(--bg);
  color: var(--ink);
  font: 500 15px/1.5 var(--font);
  -webkit-font-smoothing: antialiased;
- padding: clamp(20px, 4vw, 40px);
  color-scheme: light;
  }
- .where {
- display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center;
- margin: 0 0 14px;
- font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
- text-transform: uppercase; color: var(--slate-dim);
+ a { color: var(--moon); }
+
+ .app {
+ max-width: 980px;
+ margin: 0 auto;
+ min-height: 100%;
+ padding: 18px 18px 0;
+ display: flex;
+ flex-direction: column;
  }
- .where b {
- font-weight: 500; color: var(--moon);
- border: 1px solid rgba(138,104,24,0.35); border-radius: 3px;
- padding: 4px 8px; background: rgba(138,104,24,0.08);
- }
- .where a { color: var(--tool); text-transform: none; letter-spacing: 0; }
- .shell { max-width: 1100px; margin: 0 auto; }
- .brand {
- display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
- margin-bottom: 8px;
+
+ .top {
+ display: flex;
+ align-items: flex-start;
+ justify-content: space-between;
+ gap: 16px;
+ flex-wrap: wrap;
+ margin-bottom: 14px;
  }
  .brand h1 {
  font-size: clamp(22px, 3vw, 28px);
- font-weight: 500;
+ font-weight: 600;
  letter-spacing: -0.02em;
  }
- .brand .moon { color: var(--moon); }
- .brand .slash { color: var(--slate-dim); font-weight: 400; }
- .sub {
- color: var(--ink-2);
- font-size: 14.5px;
- max-width: 54ch;
- margin-bottom: 22px;
+ .brand h1 .moon { color: var(--moon); }
+ .brand p {
+ margin-top: 4px;
+ color: var(--mute);
+ font-size: 14px;
+ max-width: 46ch;
  }
-
- .controls { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 16px; }
- button {
- font: 500 13px var(--font);
- padding: 11px 16px;
- border-radius: 10px;
- cursor: pointer;
- border: 1px solid var(--rule-soft);
- background: rgba(255, 255, 255, 0.03);
- color: var(--ink-2);
- transition: background 160ms ease, border-color 160ms ease, color 160ms ease, opacity 160ms ease;
- }
- button:disabled { opacity: 0.35; cursor: default; }
- #break {
- color: var(--alarm);
- border-color: rgba(255, 107, 107, 0.4);
- background: rgba(255, 107, 107, 0.08);
- }
- #break:hover:not(:disabled) { background: rgba(255, 107, 107, 0.14); }
- #shift {
- color: var(--moon);
- border-color: rgba(138, 104, 24, 0.4);
- background: rgba(138, 104, 24, 0.08);
- }
- #shift:hover:not(:disabled) {
- background: rgba(138, 104, 24, 0.14);
- box-shadow: 0 0 24px rgba(138, 104, 24, 0.1);
- }
- #reset { color: var(--slate); }
- #reset:hover:not(:disabled) {
- color: var(--ink);
- background: rgba(255, 255, 255, 0.05);
- }
-
- .status {
- display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
- padding: 12px 14px;
- margin-bottom: 16px;
- border-radius: 12px;
- background: rgba(255, 255, 255, 0.03);
- border: 1px solid var(--rule-soft);
+ .where {
  font-family: var(--mono);
- font-size: 12.5px;
- color: var(--ink-2);
- }
- .status__pill {
  font-size: 11px;
- letter-spacing: 0.08em;
- text-transform: uppercase;
- padding: 4px 8px;
- border-radius: 3px;
- background: rgba(255, 255, 255, 0.06);
- color: var(--slate);
- flex-shrink: 0;
+ letter-spacing: 0.04em;
+ color: var(--dim);
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ align-items: center;
  }
- .status.broken .status__pill {
- color: var(--alarm);
- background: rgba(255, 107, 107, 0.12);
- }
- .status.working .status__pill {
+ .where b {
  color: var(--moon);
- background: rgba(138, 104, 24, 0.1);
- box-shadow: none;
- }
- .status.done .status__pill {
- color: var(--write);
- background: rgba(95, 210, 154, 0.12);
+ border: 1px solid rgba(138,104,24,0.35);
+ background: rgba(138,104,24,0.08);
+ padding: 4px 8px;
+ border-radius: 4px;
+ font-weight: 500;
  }
 
- .war {
+ .stage {
+ flex: 1;
+ min-height: 0;
  display: grid;
- grid-template-columns: 1fr 230px;
- min-height: min(620px, 72vh);
- border-radius: var(--radius);
- background: var(--surface);
- overflow: hidden;
- box-shadow:
- inset 0 1px 0 rgba(255, 255, 255, 0.7),
- 0 0 0 1px rgba(20, 22, 28, 0.1),
- 0 24px 60px -36px rgba(20, 22, 28, 0.28);
+ grid-template-columns: minmax(0, 1fr) 220px;
+ gap: 12px;
+ margin-bottom: 12px;
  }
- .war__chat {
+ @media (max-width: 820px) {
+ .stage { grid-template-columns: 1fr; }
+ .rail { order: -1; }
+ }
+
+ .chat {
+ background: var(--surface);
+ border: 1px solid var(--line);
+ border-radius: var(--radius);
  display: flex;
  flex-direction: column;
- min-width: 0;
- min-height: 0;
- border-right: 1px solid var(--rule-soft);
+ min-height: min(68vh, 720px);
+ overflow: hidden;
+ box-shadow: 0 18px 40px -28px rgba(20,22,28,0.35);
  }
- .war__top {
+ .chat__head {
  display: flex;
  align-items: center;
  justify-content: space-between;
- gap: 12px;
- flex-wrap: wrap;
- padding: 14px 18px;
- border-bottom: 1px solid var(--rule-soft);
- background: var(--surface-bar);
+ gap: 10px;
+ padding: 12px 16px;
+ border-bottom: 1px solid var(--line);
+ background: rgba(255,255,255,0.55);
  }
- .war__top-left {
- display: flex; align-items: center; gap: 10px; min-width: 0;
- }
- .war__top-left b {
- font-weight: 500; font-size: 14px;
- white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
- }
- .war__live {
- font-family: var(--mono);
- font-size: 11px;
- letter-spacing: 0.08em;
- text-transform: uppercase;
- padding: 4px 8px;
- border-radius: 3px;
- background: rgba(255, 255, 255, 0.06);
- color: var(--slate);
- }
- .war__live.is-live {
- color: var(--moon);
- background: rgba(138, 104, 24, 0.1);
- }
- .war__live.is-done {
- color: var(--write);
- background: rgba(95, 210, 154, 0.1);
- }
- .war__steps { display: flex; flex-wrap: wrap; gap: 6px; }
- .war__step {
+ .chat__head strong { font-weight: 600; font-size: 14px; }
+ .pill {
  font-family: var(--mono);
  font-size: 11px;
  letter-spacing: 0.06em;
  text-transform: uppercase;
- padding: 5px 9px;
- border-radius: 3px;
- color: var(--slate-dim);
- background: rgba(255, 255, 255, 0.03);
- border: 1px solid transparent;
- transition: color 200ms ease, border-color 200ms ease, background 200ms ease;
+ padding: 4px 8px;
+ border-radius: 999px;
+ background: rgba(20,22,28,0.06);
+ color: var(--mute);
  }
- .war__step.is-on {
- color: var(--moon);
- border-color: rgba(138, 104, 24, 0.35);
- background: rgba(138, 104, 24, 0.08);
- box-shadow: 0 0 18px rgba(138, 104, 24, 0.1);
- }
- .war__step.is-done {
- color: var(--write);
- border-color: rgba(95, 210, 154, 0.3);
- background: rgba(95, 210, 154, 0.08);
- }
+ .pill.is-live { color: var(--moon); background: rgba(138,104,24,0.12); }
+ .pill.is-broken { color: var(--alarm); background: rgba(168,40,40,0.1); }
+ .pill.is-done { color: var(--ok); background: rgba(26,107,72,0.12); }
 
- .war__stream {
+ .stream {
  flex: 1;
  overflow-y: auto;
- padding: 18px 22px 14px;
+ padding: 20px 18px 12px;
  display: flex;
  flex-direction: column;
  gap: 14px;
  scroll-behavior: smooth;
  }
- .msg {
- display: grid;
- grid-template-columns: 108px minmax(0, 1fr);
- column-gap: 14px;
- width: 100%;
- max-width: 100%;
- align-self: stretch;
+ .empty {
+ margin: auto;
+ text-align: center;
+ max-width: 34ch;
+ color: var(--mute);
+ padding: 28px 12px;
  }
- .msg.is-enter {
- animation: msg-in 420ms var(--ease) both;
- }
- .msg--boot .msg__body {
- color: var(--slate);
- font-family: var(--mono);
- font-size: 12.5px;
- }
- .msg--boot .msg__who { color: var(--slate-dim); }
- .msg__body.has-caret::after,
- .msg__tool-detail.has-caret::after {
- content: "";
- display: inline-block;
- width: 0.55ch;
- height: 1.05em;
- margin-left: 3px;
- vertical-align: -2px;
- background: var(--moon);
- animation: caret-blink 1s steps(1) infinite;
- }
- .stream-hint {
- font-family: var(--mono);
- font-size: 12px;
- color: var(--slate-dim);
- padding: 4px 0 2px;
- letter-spacing: 0.02em;
- }
- .stream-hint .dots::after {
- content: "";
- animation: dots 1.2s steps(4, end) infinite;
- }
- button.is-busy {
- opacity: 0.85;
- cursor: wait;
- }
- .war__live.is-live {
- animation: live-pulse 1.6s ease-in-out infinite;
- }
- .war__aspects li.is-flash {
- animation: aspect-flash 520ms var(--ease);
- }
- .war__step.is-on {
- animation: step-hit 360ms var(--ease);
- }
- @keyframes msg-in {
- from { opacity: 0; transform: translateY(8px); }
- to { opacity: 1; transform: none; }
- }
- @keyframes caret-blink {
- 0%, 49% { opacity: 1; }
- 50%, 100% { opacity: 0; }
- }
- @keyframes dots {
- 0% { content: ""; }
- 25% { content: "."; }
- 50% { content: ".."; }
- 75%, 100% { content: "..."; }
- }
- @keyframes live-pulse {
- 0%, 100% { box-shadow: 0 0 0 0 rgba(138, 104, 24, 0); }
- 50% { box-shadow: 0 0 0 4px rgba(138, 104, 24, 0.12); }
- }
- @keyframes aspect-flash {
- from { background: rgba(138, 104, 24, 0.14); }
- to { background: rgba(255, 255, 255, 0.03); }
- }
- @keyframes step-hit {
- from { transform: translateY(2px); }
- to { transform: none; }
- }
- @media (prefers-reduced-motion: reduce) {
- .msg.is-enter, .war__live.is-live, .war__aspects li.is-flash, .war__step.is-on {
- animation: none;
- }
- .msg__body.has-caret::after, .msg__tool-detail.has-caret::after { animation: none; opacity: 1; }
- .stream-hint .dots::after { animation: none; content: "..."; }
- }
- .msg__who {
- font-family: var(--mono);
- font-size: 11px;
- letter-spacing: 0.04em;
- color: var(--slate-dim);
- padding-top: 3px;
- text-align: right;
- white-space: nowrap;
- }
- .msg--pager .msg__who { color: var(--alarm); }
- .msg--agent .msg__who { color: var(--moon); }
- .msg--report .msg__who { color: var(--write); }
- .msg--tool .msg__who { color: var(--tool); }
- .msg__body {
- font-size: 14.5px;
- line-height: 1.55;
- color: var(--ink-2);
- white-space: pre-wrap;
- }
- .msg--pager .msg__body,
- .msg--agent .msg__body { color: var(--ink); }
- .msg--report .msg__body {
+ .empty h2 {
+ font-size: 18px;
+ font-weight: 600;
  color: var(--ink);
- border-left: 2px solid var(--write);
- padding-left: 12px;
+ margin-bottom: 8px;
+ letter-spacing: -0.02em;
  }
- .msg__tool {
- display: grid;
- grid-template-columns: 1fr auto;
- gap: 4px 12px;
- padding: 6px 0 6px 12px;
- border-left: 1px solid var(--rule-soft);
- background: transparent;
- font-family: var(--mono);
- font-size: 12.5px;
- }
- .msg__tool-name { color: var(--tool); font-weight: 500; }
- .msg__tool-name.is-memory { color: var(--memory); }
- .msg__tool-name.is-write { color: var(--write); }
- .msg__tool-stamp { color: var(--slate-dim); font-size: 11px; }
- .msg__tool-detail {
- grid-column: 1 / -1;
- color: var(--slate-dim);
- word-break: break-all;
- }
+ .empty p { font-size: 14px; line-height: 1.55; }
 
- .war__graph {
+ .row {
  display: flex;
  flex-direction: column;
- min-height: 0;
- background: var(--surface-bar);
+ gap: 6px;
+ max-width: min(78%, 560px);
+ animation: in 360ms var(--ease) both;
  }
- .war__graph-head {
- padding: 14px 16px;
+ .row.is-user { align-self: flex-end; align-items: flex-end; }
+ .row.is-assistant { align-self: flex-start; align-items: flex-start; }
+ .row.is-status { align-self: center; max-width: 100%; align-items: center; }
+ .kicker {
+ font-family: var(--mono);
+ font-size: 10px;
+ letter-spacing: 0.14em;
+ text-transform: uppercase;
+ color: var(--dim);
+ }
+ .row.is-assistant .kicker { color: var(--moon); }
+ .row.is-user .kicker { color: var(--alarm); }
+
+ .bubble {
+ padding: 12px 14px;
+ border-radius: 16px;
+ font-size: 14.5px;
+ line-height: 1.55;
+ white-space: pre-wrap;
+ word-break: break-word;
+ }
+ .bubble--user {
+ background: var(--user);
+ border: 1px solid var(--line);
+ border-bottom-right-radius: 5px;
+ color: var(--ink);
+ }
+ .bubble--assistant {
+ background: var(--assistant);
+ color: var(--assistant-ink);
+ border-bottom-left-radius: 5px;
+ }
+ .bubble--status {
+ background: transparent;
+ border: 1px dashed var(--line);
+ color: var(--mute);
+ font-family: var(--mono);
+ font-size: 12px;
+ border-radius: 999px;
+ padding: 8px 14px;
+ }
+ .working {
+ display: flex;
+ align-items: center;
+ gap: 10px;
+ }
+ .dots { display: inline-flex; gap: 4px; }
+ .dots i {
+ width: 5px; height: 5px; border-radius: 50%;
+ background: var(--moon);
+ opacity: 0.3;
+ animation: blink 1s infinite;
+ }
+ .dots i:nth-child(2) { animation-delay: 0.15s; }
+ .dots i:nth-child(3) { animation-delay: 0.3s; }
+
+ .steps {
+ margin-top: 8px;
+ display: flex;
+ flex-direction: column;
+ gap: 4px;
+ font-family: var(--mono);
+ font-size: 11.5px;
+ color: rgba(242,243,245,0.62);
+ }
+ .steps b { color: rgba(242,243,245,0.9); font-weight: 500; }
+
+ .composer {
+ border-top: 1px solid var(--line);
+ padding: 12px;
+ background: rgba(255,255,255,0.65);
+ display: flex;
+ flex-direction: column;
+ gap: 10px;
+ }
+ .actions {
+ display: flex;
+ flex-wrap: wrap;
+ gap: 8px;
+ }
+ .actions button {
+ font: 600 13px var(--font);
+ padding: 10px 14px;
+ border-radius: 10px;
+ border: 1px solid var(--line);
+ background: #fff;
+ color: var(--ink);
+ cursor: pointer;
+ transition: background 140ms ease, border-color 140ms ease, opacity 140ms ease;
+ }
+ .actions button:disabled { opacity: 0.4; cursor: default; }
+ .actions button:hover:not(:disabled) { border-color: rgba(20,22,28,0.22); }
+ #break {
+ color: var(--alarm);
+ border-color: rgba(168,40,40,0.28);
+ background: rgba(168,40,40,0.06);
+ }
+ #shift {
+ color: #fff;
+ background: var(--ink);
+ border-color: var(--ink);
+ }
+ #shift:disabled {
+ color: var(--mute);
+ background: #fff;
+ border-color: var(--line);
+ }
+ #reset { color: var(--mute); }
+
+ .bar {
+ display: flex;
+ gap: 8px;
+ align-items: stretch;
+ }
+ .bar__field {
+ flex: 1;
+ position: relative;
+ }
+ .bar__field span {
+ position: absolute;
+ left: 14px;
+ top: 50%;
+ transform: translateY(-50%);
+ font-family: var(--mono);
+ font-size: 13px;
+ color: var(--dim);
+ pointer-events: none;
+ }
+ .bar input {
+ width: 100%;
+ border: 1px solid var(--line);
+ background: #fff;
+ border-radius: 12px;
+ padding: 13px 14px 13px 30px;
+ font: 500 14px var(--font);
+ color: var(--ink);
+ outline: none;
+ }
+ .bar input:focus { border-color: rgba(20,22,28,0.35); }
+ .bar input:disabled { background: #f3f4f6; color: var(--dim); }
+ .bar button {
+ min-width: 96px;
+ border-radius: 12px;
+ border: 1px solid var(--ink);
+ background: var(--ink);
+ color: #fff;
+ font: 600 13px var(--font);
+ cursor: pointer;
+ padding: 0 16px;
+ }
+ .bar button:disabled {
+ background: transparent;
+ color: var(--dim);
+ border-color: var(--line);
+ cursor: default;
+ }
+ .hint {
+ font-size: 12px;
+ color: var(--dim);
+ padding: 0 2px;
+ }
+
+ .rail {
+ background: var(--surface);
+ border: 1px solid var(--line);
+ border-radius: var(--radius);
+ padding: 14px 14px 10px;
+ height: fit-content;
+ }
+ .rail h3 {
  font-family: var(--mono);
  font-size: 11px;
  letter-spacing: 0.12em;
  text-transform: uppercase;
- color: var(--slate-dim);
- border-bottom: 1px solid var(--rule-soft);
+ color: var(--dim);
+ margin-bottom: 12px;
  }
- .war__aspects {
+ .rail li {
  list-style: none;
- padding: 10px 0;
- margin: 0;
- flex: 1;
- }
- .war__aspects li {
- display: grid;
- grid-template-columns: 10px 1fr auto;
- gap: 10px;
+ display: flex;
  align-items: center;
- padding: 12px 16px;
- font-family: var(--mono);
- font-size: 12.5px;
- color: var(--slate-dim);
- border-bottom: 1px solid rgba(255, 255, 255, 0.04);
- transition: color 240ms ease, background 240ms ease;
+ justify-content: space-between;
+ gap: 10px;
+ padding: 10px 0;
+ border-top: 1px solid var(--line);
+ font-size: 13px;
+ color: var(--mute);
  }
- .war__aspects li i {
- width: 8px; height: 8px; border-radius: 50%;
- background: rgba(255, 255, 255, 0.15);
- transition: background 240ms ease, box-shadow 240ms ease;
+ .rail li:first-of-type { border-top: none; }
+ .rail li.is-on { color: var(--ink); font-weight: 600; }
+ .rail li i {
+ width: 18px; height: 18px; border-radius: 50%;
+ border: 1.5px solid var(--line);
+ display: grid; place-items: center;
+ font-size: 11px; color: transparent;
+ flex-shrink: 0;
  }
- .war__aspects li b { font-weight: 500; color: var(--slate-dim); }
- .war__aspects li.is-on {
- color: var(--ink);
- background: rgba(255, 255, 255, 0.03);
+ .rail li.is-on i {
+ border-color: var(--ok);
+ background: rgba(26,107,72,0.12);
+ color: var(--ok);
  }
- .war__aspects li.is-on i {
- background: var(--c, var(--write));
- box-shadow: 0 0 12px color-mix(in srgb, var(--c, #5fd29a) 55%, transparent);
- }
- .war__aspects li.is-on b { color: var(--write); }
 
- .nights {
- color: var(--slate-dim);
- font-family: var(--mono);
- font-size: 12.5px;
- margin-top: 18px;
+ .foot {
+ padding: 4px 2px 16px;
+ font-size: 12px;
+ color: var(--dim);
  }
- footer {
- margin-top: 10px;
- color: var(--slate-dim);
- font-size: 12.5px;
- }
- a { color: var(--tool); }
 
- @media (max-width: 860px) {
- .war { grid-template-columns: 1fr; }
- .war__chat { border-right: none; border-bottom: 1px solid var(--rule-soft); }
+ @keyframes in {
+ from { opacity: 0; transform: translateY(8px); }
+ to { opacity: 1; transform: none; }
+ }
+ @keyframes blink {
+ 0%, 100% { opacity: 0.25; }
+ 50% { opacity: 1; }
+ }
+ @media (prefers-reduced-motion: reduce) {
+ .row { animation: none; }
+ .dots i { animation: none; opacity: 0.7; }
  }
 </style>
 </head>
 <body>
-<div class="shell">
- <p class="where"><b>try.* · judge sandbox</b>
- <span>not /app</span>
- · <a href="https://nightshift.51-91-121-153.sslip.io/">landing</a>
- · <a href="https://nightshift.51-91-121-153.sslip.io/app">war room</a>
- · <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md</a>
- </p>
+<div class="app">
+ <div class="top">
  <div class="brand">
- <h1><span class="moon">&#9789;</span> Nightshift <span class="slash">/ break it yourself</span></h1>
+ <h1><span class="moon">&#9789;</span> Nightshift</h1>
+ <p>Break a real pipeline. Wake the on-call agent. Watch it write the night back into DataHub.</p>
  </div>
- <p class="sub">One-click proof on a real DataHub graph. Break → Wake → Restore.
- The connected product (your token, Sentinel, history) lives at
- <a href="https://nightshift.51-91-121-153.sslip.io/app">/app</a>.</p>
+ <div class="where">
+ <b>try.* · demo</b>
+ <a href="https://nightshift.51-91-121-153.sslip.io/">landing</a>
+ <a href="https://nightshift.51-91-121-153.sslip.io/app">/app</a>
+ <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md</a>
+ </div>
+ </div>
 
- <div class="controls">
+ <div class="stage">
+ <section class="chat" aria-label="Nightshift chat">
+ <header class="chat__head">
+ <strong>Night desk</strong>
+ <span class="pill" id="pill">idle</span>
+ </header>
+ <div class="stream" id="stream" aria-live="polite">
+ <div class="empty" id="empty">
+ <h2>Start with the pager</h2>
+ <p>Click <b>Break the pipeline</b>. Then wake Nightshift. You will see a normal chat, not a wall of tool names.</p>
+ </div>
+ </div>
+ <div class="composer">
+ <div class="actions">
  <button id="break" type="button">Break the pipeline</button>
  <button id="shift" type="button" disabled>Wake the night shift</button>
- <button id="reset" type="button">Restore the schema</button>
+ <button id="reset" type="button">Restore</button>
  </div>
+ <form class="bar" id="compose" autocomplete="off">
+ <div class="bar__field">
+ <span>&gt;</span>
+ <input id="input" type="text" placeholder="Or type: break / wake / restore" />
+ </div>
+ <button id="send" type="submit" disabled>Send</button>
+ </form>
+ <p class="hint" id="hint">Tip: Break first. Wake second. Restore when you are done.</p>
+ </div>
+ </section>
 
- <div id="status" class="status">
- <span class="status__pill" id="status-pill">healthy</span>
- <span id="status-text">The pipeline is healthy. Nobody expects anything.</span>
- </div>
-
- <div class="war" id="war">
- <div class="war__chat">
- <header class="war__top">
- <div class="war__top-left">
- <span class="war__live" id="war-live">idle</span>
- <b id="war-title">Night shift · demo</b>
- </div>
- <div class="war__steps" id="war-steps">
- <span class="war__step" data-step="recall">Recall</span>
- <span class="war__step" data-step="lineage">Lineage</span>
- <span class="war__step" data-step="diagnose">Diagnose</span>
- <span class="war__step" data-step="remember">Remember</span>
- <span class="war__step" data-step="fix">Fix</span>
- </div>
- </header>
- <div class="war__stream" id="stream" aria-live="polite"></div>
- </div>
- <aside class="war__graph" aria-label="DataHub write-back">
- <div class="war__graph-head">DataHub · write-back</div>
- <ul class="war__aspects" id="aspects">
- <li data-aspect="recall"><i style="--c:var(--memory)"></i><span>Memory read</span><b>·</b></li>
- <li data-aspect="incident"><i style="--c:var(--alarm)"></i><span>Incident</span><b>·</b></li>
- <li data-aspect="memory"><i style="--c:var(--moon)"></i><span>Postmortem</span><b>·</b></li>
- <li data-aspect="guard"><i style="--c:var(--write)"></i><span>Presence guard</span><b>·</b></li>
- <li data-aspect="pr"><i style="--c:var(--tool)"></i><span>Draft PR</span><b>·</b></li>
+ <aside class="rail" aria-label="DataHub write-back">
+ <h3>DataHub</h3>
+ <ul id="aspects">
+ <li data-aspect="recall"><span>Memory check</span><i>✓</i></li>
+ <li data-aspect="incident"><span>Incident</span><i>✓</i></li>
+ <li data-aspect="memory"><span>Postmortem</span><i>✓</i></li>
+ <li data-aspect="guard"><span>Presence guard</span><i>✓</i></li>
+ <li data-aspect="pr"><span>Draft fix PR</span><i>✓</i></li>
  </ul>
  </aside>
  </div>
 
- <div class="nights" id="nights"></div>
- <footer>Every conclusion is written into the graph itself.
- Open the <a href="/datahub" target="_blank" rel="noopener">DataHub UI</a> and look at the
- dataset's documentation, validations and incidents.</footer>
+ <p class="foot" id="nights">After the shift, open the
+ <a href="/datahub" target="_blank" rel="noopener">DataHub UI</a>
+ and check Incidents, Documentation, and Validations.</p>
 </div>
 <script>
 const $ = id => document.getElementById(id);
+const stream = $("stream");
+const empty = $("empty");
+const lit = new Set();
+let lastSig = "";
+let painted = { pager: false, thoughts: 0, tools: 0, conclusion: false, working: false };
+let busy = null;
+let pollMs = 1200;
+let pollTimer = null;
+let workingEl = null;
 
-const classify = ev => {
- if (ev.kind === "thought") return "thought";
- const l = (ev.label || "").toLowerCase();
- if (l.includes("recall") || l.includes("failure_mode") || l.includes("remember_incident")) return "memory";
- if (l.includes("remember") || l.includes("incident") || l.includes("guard") || l.includes("immunize") || l.includes("open_fix")) return "write";
- return "tool";
-};
+const TOOL_PLAIN = [
+ [/recall|failure_mode/, "Checking memory for a known failure"],
+ [/lineage|get_lineage/, "Walking lineage upstream"],
+ [/schema|get_entities|dataset_queries/, "Reading the real schema"],
+ [/open_incident/, "Opening an incident in DataHub"],
+ [/resolve_incident/, "Resolving the incident"],
+ [/remember_incident/, "Writing the postmortem into the graph"],
+ [/guard_column|immunize/, "Leaving a presence guard"],
+ [/open_fix_pr/, "Opening a draft fix PR"],
+ [/search|query/, "Searching the catalog"],
+];
 
-const stepFor = (label, kind) => {
+function plainTool(label) {
  const l = (label || "").toLowerCase();
- if (l.includes("recall") || l.includes("failure_mode")) return "recall";
- if (l.includes("lineage") || l.includes("schema") || l.includes("get_entities") || l.includes("dataset_queries")) return "lineage";
- if (l.includes("open_incident") || kind === "thought") return "diagnose";
- if (l.includes("remember") || l.includes("guard") || l.includes("immunize") || l.includes("resolve")) return "remember";
- if (l.includes("open_fix_pr") || l.includes("fix")) return "fix";
- return null;
-};
+ for (const [re, text] of TOOL_PLAIN) if (re.test(l)) return text;
+ return "Working a DataHub tool";
+}
 
-const aspectFor = label => {
+function aspectFor(label) {
  const l = (label || "").toLowerCase();
  if (l.includes("open_incident") || l.includes("resolve_incident")) return "incident";
  if (l.includes("remember_incident")) return "memory";
@@ -519,65 +492,6 @@ const aspectFor = label => {
  if (l.includes("open_fix_pr")) return "pr";
  if (l.includes("recall") || l.includes("failure_mode")) return "recall";
  return null;
-};
-
-const lit = new Set();
-let lastSig = "";
-let painted = { planted: false, events: 0, conclusion: false };
-let busy = null;
-let pollMs = 1500;
-let pollTimer = null;
-let bootTimer = null;
-let bootIdx = 0;
-const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-const BOOT_LINES = [
- "Spawning DataHub MCP and write tools",
- "Loading lineage + schema context",
- "Handing the pager to the night shift",
- "Waiting for the first tool call",
-];
-
-function resetChrome() {
- lit.clear();
- painted = { planted: false, events: 0, conclusion: false };
- stopBoot();
- $("stream").innerHTML = "";
- $("war-steps").querySelectorAll(".war__step").forEach(el => {
- el.classList.remove("is-on", "is-done");
- });
- $("aspects").querySelectorAll("li").forEach(li => {
- li.classList.remove("is-on", "is-flash");
- li.querySelector("b").textContent = "·";
- });
-}
-
-function setStep(name) {
- if (!name) return;
- let hit = false;
- $("war-steps").querySelectorAll(".war__step").forEach(el => {
- const id = el.getAttribute("data-step");
- el.classList.remove("is-on");
- if (id === name) {
- el.classList.add("is-on", "is-done");
- hit = true;
- } else if (!hit) {
- el.classList.add("is-done");
- }
- });
-}
-
-function lightAspect(key, flash) {
- if (!key || lit.has(key)) return;
- lit.add(key);
- const li = $("aspects").querySelector(`[data-aspect="${key}"]`);
- if (!li) return;
- li.classList.add("is-on");
- if (flash !== false && !reduceMotion) {
- li.classList.add("is-flash");
- setTimeout(() => li.classList.remove("is-flash"), 560);
- }
- li.querySelector("b").textContent = key === "recall" ? "read" : "written";
 }
 
 function esc(s) {
@@ -588,335 +502,268 @@ function esc(s) {
  .replace(/"/g, "&quot;");
 }
 
+function hideEmpty() {
+ if (empty) empty.style.display = "none";
+}
+
+function showEmpty() {
+ if (empty) empty.style.display = "";
+}
+
+function resetChrome() {
+ lit.clear();
+ painted = { pager: false, thoughts: 0, tools: 0, conclusion: false, working: false };
+ workingEl = null;
+ stream.innerHTML = "";
+ stream.appendChild(empty);
+ showEmpty();
+ $("aspects").querySelectorAll("li").forEach(li => li.classList.remove("is-on"));
+}
+
+function lightAspect(key) {
+ if (!key || lit.has(key)) return;
+ lit.add(key);
+ const li = $("aspects").querySelector(`[data-aspect="${key}"]`);
+ if (li) li.classList.add("is-on");
+}
+
+function addRow(kind, kicker, htmlBody) {
+ hideEmpty();
+ const row = document.createElement("div");
+ row.className = "row is-" + kind;
+ row.innerHTML =
+ `<div class="kicker">${esc(kicker)}</div>` +
+ `<div class="bubble bubble--${kind === "status" ? "status" : kind}">${htmlBody}</div>`;
+ stream.appendChild(row);
+ stream.scrollTop = stream.scrollHeight;
+ return row;
+}
+
 function pagerText(planted) {
  return planted.symptom ||
- (`${planted.old_column} became ${planted.new_column} upstream. Downstream still selects the old name.`);
+ (`The revenue dashboard is showing zero. Upstream renamed ${planted.old_column} to ${planted.new_column} overnight. Nobody told us.`);
 }
 
-function clearCarets() {
- $("stream").querySelectorAll(".has-caret").forEach(el => el.classList.remove("has-caret"));
+function ensureWorking() {
+ if (workingEl) return workingEl;
+ painted.working = true;
+ workingEl = addRow(
+ "assistant",
+ "Nightshift",
+ `<div class="working"><span class="dots"><i></i><i></i><i></i></span><span>On it</span></div>` +
+ `<div class="steps" id="work-steps"></div>`
+ );
+ return workingEl;
 }
 
-function appendHtml(html) {
- const stream = $("stream");
- const wrap = document.createElement("div");
- wrap.innerHTML = html.trim();
- const el = wrap.firstElementChild;
- if (!el) return null;
- if (!reduceMotion) el.classList.add("is-enter");
- stream.appendChild(el);
+function pushWorkStep(text) {
+ ensureWorking();
+ const box = workingEl.querySelector("#work-steps");
+ if (!box) return;
+ const existing = [...box.querySelectorAll("div")].map(d => d.dataset.key);
+ if (existing.includes(text)) return;
+ if (box.children.length >= 5) return;
+ const line = document.createElement("div");
+ line.dataset.key = text;
+ line.innerHTML = `<b>·</b> ${esc(text)}`;
+ box.appendChild(line);
  stream.scrollTop = stream.scrollHeight;
- return el;
 }
 
-function typeInto(el, text, cps) {
- const full = String(text || "");
- if (!el || reduceMotion || full.length < 8) {
- el.textContent = full;
- return;
- }
- el.textContent = "";
- el.classList.add("has-caret");
- let i = 0;
- const step = Math.max(1, Math.ceil(full.length / 80));
- const tick = () => {
- i = Math.min(full.length, i + step);
- el.textContent = full.slice(0, i);
- $("stream").scrollTop = $("stream").scrollHeight;
- if (i < full.length) setTimeout(tick, cps || 14);
- else setTimeout(() => el.classList.remove("has-caret"), 700);
- };
- tick();
+function finishWorking() {
+ if (!workingEl) return;
+ const label = workingEl.querySelector(".working span:last-child");
+ if (label) label.textContent = "Done looking. Writing it down.";
 }
 
-function msgPager(text) {
- return `<div class="msg msg--pager"><div class="msg__who">pager</div><div class="msg__body"></div></div>`;
-}
-
-function msgThought(detail, stamp) {
- return `<div class="msg msg--agent"><div class="msg__who">nightshift</div>` +
- `<div class="msg__body"><span class="msg__type"></span>` +
- `<div style="opacity:.45;font:11px var(--mono);margin-top:4px">${esc(stamp)}</div></div></div>`;
-}
-
-function msgTool(label, stamp, detail, tone) {
- return `<div class="msg msg--tool"><div class="msg__who">tool</div><div class="msg__tool">` +
- `<span class="msg__tool-name ${tone}">${esc(label)}</span>` +
- `<span class="msg__tool-stamp">${esc(stamp)}</span>` +
- `<span class="msg__tool-detail"></span></div></div>`;
-}
-
-function msgReport(text) {
- return `<div class="msg msg--report"><div class="msg__who">report</div><div class="msg__body"></div></div>`;
-}
-
-function msgBoot(text) {
- return `<div class="msg msg--boot" data-boot="1"><div class="msg__who">system</div>` +
- `<div class="msg__body">${esc(text)}<span class="dots"></span></div></div>`;
-}
-
-function stopBoot() {
- if (bootTimer) clearInterval(bootTimer);
- bootTimer = null;
- bootIdx = 0;
- $("stream").querySelectorAll("[data-boot]").forEach(el => el.remove());
- const hint = $("stream").querySelector(".stream-hint");
- if (hint) hint.remove();
-}
-
-function startBoot() {
- if (bootTimer) return;
- if (!$("stream").querySelector(".stream-hint")) {
- appendHtml(`<div class="stream-hint">Shift starting<span class="dots"></span></div>`);
- }
- if (reduceMotion) return;
- bootIdx = 0;
- bootTimer = setInterval(() => {
- if (bootIdx >= BOOT_LINES.length) return;
- appendHtml(msgBoot(BOOT_LINES[bootIdx]));
- bootIdx += 1;
- }, 1100);
-}
-
-function syncStream(s) {
- const events = s.events || [];
-
- if (s.planted && !painted.planted) {
- const el = appendHtml(msgPager());
- const body = el.querySelector(".msg__body");
- typeInto(body, pagerText(s.planted), 10);
- body.dataset.final = "1";
- painted.planted = true;
- } else if (s.planted && painted.planted) {
- const body = $("stream").querySelector(".msg--pager .msg__body");
- if (body && body.dataset.final !== "1") {
- body.textContent = pagerText(s.planted);
- body.dataset.final = "1";
- }
- }
-
- if (events.length) stopBoot();
- else if (s.shift_running && !s.conclusion) startBoot();
- if (!s.shift_running) stopBoot();
-
- for (let i = painted.events; i < events.length; i++) {
- const ev = events[i];
- const css = classify(ev);
- const stamp = (ev.at || "").split("T").pop() || "";
- const label = ev.label || (css === "thought" ? "thinking" : "");
- const step = stepFor(label, ev.kind);
- if (step) setStep(step);
- const aspect = aspectFor(label);
- if (aspect) lightAspect(aspect, true);
-
- clearCarets();
- if (css === "thought") {
- const el = appendHtml(msgThought(ev.detail, stamp));
- typeInto(el.querySelector(".msg__type"), ev.detail || "", 12);
- } else {
- const tone = css === "memory" ? "is-memory" : css === "write" ? "is-write" : "";
- const el = appendHtml(msgTool(label, stamp, ev.detail, tone));
- typeInto(el.querySelector(".msg__tool-detail"), ev.detail || "", 8);
- }
- }
- painted.events = events.length;
-
- if (s.conclusion && !painted.conclusion) {
- clearCarets();
- const el = appendHtml(msgReport());
- typeInto(el.querySelector(".msg__body"), s.conclusion, 10);
- setStep("fix");
- painted.conclusion = true;
- }
+function setPill(mode, text) {
+ const pill = $("pill");
+ pill.className = "pill" + (mode ? " is-" + mode : "");
+ pill.textContent = text;
 }
 
 function setBusy(id, label) {
  busy = id;
- ["break", "shift", "reset"].forEach(bid => {
+ ["break", "shift", "reset", "send"].forEach(bid => {
  const b = $(bid);
  if (!b) return;
+ b.disabled = true;
  if (bid === id) {
- b.classList.add("is-busy");
  b.dataset.label = b.dataset.label || b.textContent;
  b.textContent = label;
- b.disabled = true;
- } else {
- b.disabled = true;
  }
  });
+ $("input").disabled = true;
 }
 
 function clearBusy() {
  if (!busy) return;
  const b = $(busy);
  if (b && b.dataset.label) b.textContent = b.dataset.label;
- ["break", "shift", "reset"].forEach(bid => $(bid).classList.remove("is-busy"));
  busy = null;
+ $("input").disabled = false;
+}
+
+function syncChat(s) {
+ const events = s.events || [];
+ const thoughts = events.filter(e => e.kind === "thought");
+ const tools = events.filter(e => e.kind !== "thought");
+
+ if (s.planted && !painted.pager) {
+ const row = addRow("user", "Pager", esc(pagerText(s.planted)));
+ row.querySelector(".bubble").dataset.final = "1";
+ painted.pager = true;
+ } else if (s.planted && painted.pager) {
+ const body = stream.querySelector(".row.is-user .bubble");
+ if (body && body.dataset.final !== "1") {
+ body.textContent = pagerText(s.planted);
+ body.dataset.final = "1";
+ }
+ }
+
+ if (s.shift_running && !s.conclusion) {
+ ensureWorking();
+ }
+
+ for (let i = painted.tools; i < tools.length; i++) {
+ const ev = tools[i];
+ const label = ev.label || "";
+ pushWorkStep(plainTool(label));
+ const aspect = aspectFor(label);
+ if (aspect) lightAspect(aspect);
+ }
+ painted.tools = tools.length;
+
+ for (let i = painted.thoughts; i < thoughts.length; i++) {
+ const t = (thoughts[i].detail || "").trim();
+ if (!t) continue;
+ /* Keep only the useful prose, skip tiny fragments. */
+ if (t.length < 40 && i < thoughts.length - 1) continue;
+ addRow("assistant", "Nightshift", esc(t));
+ }
+ painted.thoughts = thoughts.length;
+
+ if (s.conclusion && !painted.conclusion) {
+ finishWorking();
+ addRow("assistant", "Morning report", esc(s.conclusion));
+ painted.conclusion = true;
+ /* Light remaining write-backs judges expect. */
+ ["incident", "memory", "guard", "pr"].forEach(lightAspect);
+ }
 }
 
 async function poll() {
  let s;
- try {
- s = await (await fetch("/api/state")).json();
- } catch (e) {
- return;
- }
+ try { s = await (await fetch("/api/state")).json(); }
+ catch { return; }
 
+ const events = s.events || [];
  if (!busy) {
  $("break").disabled = !!s.planted || s.shift_running;
  $("shift").disabled = !s.planted || s.shift_running;
  $("reset").disabled = !!s.shift_running;
  }
 
- const st = $("status");
- const pill = $("status-pill");
- const text = $("status-text");
- const live = $("war-live");
- const title = $("war-title");
-
  if (s.shift_running) {
- st.className = "status working";
- pill.textContent = "running";
- text.textContent = s.events && s.events.length
- ? "Tools firing. Watch the stream and the write-back rail."
- : "Cold start: spawning tools. First lines land in a moment.";
- live.className = "war__live is-live";
- live.textContent = "live";
- title.textContent = "Night shift · working";
- pollMs = 400;
+ setPill("live", "live");
+ $("hint").textContent = "Nightshift is working. Watch the chat and the DataHub checklist.";
+ $("input").placeholder = "Shift in progress…";
+ $("send").disabled = true;
+ pollMs = 450;
  } else if (s.conclusion) {
- st.className = "status done";
- pill.textContent = "done";
- text.textContent = "Shift over. Read the morning report, then check DataHub.";
- live.className = "war__live is-done";
- live.textContent = "done";
- title.textContent = "Night shift · morning";
+ setPill("done", "done");
+ $("hint").textContent = "Shift over. Open DataHub, then Restore if you want a clean graph.";
+ $("input").placeholder = "Type restore, or ask nothing — demo is done";
+ $("send").disabled = false;
  pollMs = 1500;
  } else if (s.planted) {
- st.className = "status broken";
- pill.textContent = "planted";
- text.textContent = "`" + s.planted.old_column + "` is now `" + s.planted.new_column +
- "` upstream. Downstream SQL still selects the old name. Nobody was told.";
- live.className = "war__live";
- live.textContent = "planted";
- title.textContent = "Night shift · waiting";
- pollMs = 1000;
+ setPill("broken", "broken");
+ $("hint").textContent = "Pipeline is broken. Wake the night shift.";
+ $("input").placeholder = "Type wake — or press Wake the night shift";
+ $("send").disabled = false;
+ pollMs = 900;
  } else {
- st.className = "status";
- pill.textContent = "healthy";
- text.textContent = "The pipeline is healthy. Nobody expects anything.";
- live.className = "war__live";
- live.textContent = "idle";
- title.textContent = "Night shift · demo";
- pollMs = 1500;
+ setPill("", "idle");
+ $("hint").textContent = "Tip: Break first. Wake second. Restore when you are done.";
+ $("input").placeholder = "Or type: break / wake / restore";
+ $("send").disabled = false;
+ pollMs = 1200;
  }
 
- const events = s.events || [];
  const sig = events.length + "|" + (s.conclusion ? "1" : "0") + "|" +
  (s.planted ? "1" : "0") + "|" + (s.shift_running ? "1" : "0");
 
  if (!s.planted && !events.length && !s.conclusion && !s.shift_running) {
- if (sig !== lastSig) {
- lastSig = sig;
- resetChrome();
- }
+ if (sig !== lastSig) { lastSig = sig; resetChrome(); }
  } else {
- if (events.length < painted.events || (!s.planted && painted.planted && !busy)) {
+ if (events.length < painted.tools + painted.thoughts || (!s.planted && painted.pager && !busy)) {
  resetChrome();
  lastSig = "";
  }
  if (sig !== lastSig || (s.shift_running && !events.length)) {
  lastSig = sig;
- lit.clear();
- $("war-steps").querySelectorAll(".war__step").forEach(el => {
- el.classList.remove("is-on", "is-done");
- });
- $("aspects").querySelectorAll("li").forEach(li => {
- li.classList.remove("is-on", "is-flash");
- li.querySelector("b").textContent = "·";
- });
- syncStream(s);
- events.forEach(ev => {
- const label = ev.label || "";
- const step = stepFor(label, ev.kind);
- if (step) setStep(step);
- const aspect = aspectFor(label);
- if (aspect) lightAspect(aspect, false);
- });
- if (s.conclusion) setStep("fix");
+ if (!s.planted && painted.pager && !busy) resetChrome();
+ syncChat(s);
  }
  }
 
- $("nights").textContent = s.nights
- ? `${s.nights} shift(s) this session - the graph remembers every one.`
- : "";
+ $("nights").innerHTML = s.nights
+ ? `${s.nights} shift(s) this session. The graph remembers every one. Open the <a href="/datahub" target="_blank" rel="noopener">DataHub UI</a>.`
+ : `After the shift, open the <a href="/datahub" target="_blank" rel="noopener">DataHub UI</a> and check Incidents, Documentation, and Validations.`;
 }
 
 function schedulePoll() {
  if (pollTimer) clearTimeout(pollTimer);
- pollTimer = setTimeout(async () => {
- await poll();
- schedulePoll();
- }, pollMs);
+ pollTimer = setTimeout(async () => { await poll(); schedulePoll(); }, pollMs);
 }
 
-$("break").onclick = async () => {
+async function doBreak() {
  setBusy("break", "Breaking…");
- $("status").className = "status broken";
- $("status-pill").textContent = "breaking";
- $("status-text").textContent = "Planting a silent upstream rename in DataHub…";
- $("war-live").textContent = "breaking";
- if (!painted.planted) {
- const el = appendHtml(msgPager());
- typeInto(el.querySelector(".msg__body"),
- "Planting upstream rename. Downstream still selects the old column…", 10);
- painted.planted = true;
+ setPill("broken", "breaking");
+ $("hint").textContent = "Planting a silent upstream rename…";
+ if (!painted.pager) {
+ addRow("user", "Pager", "Something just broke the revenue dashboard overnight.");
+ painted.pager = true;
  }
  try {
  const res = await fetch("/api/break", { method: "POST" });
  if (!res.ok) {
  const err = await res.json().catch(() => ({}));
- $("status-text").textContent = err.detail || err.error || ("Break failed (" + res.status + ")");
+ addRow("status", "system", esc(err.detail || err.error || "Break failed"));
  }
- } catch (e) {
- $("status-text").textContent = "Break request failed. Check the demo server.";
+ } catch {
+ addRow("status", "system", "Break request failed");
  } finally {
  clearBusy();
  lastSig = "";
  await poll();
  }
-};
+}
 
-$("shift").onclick = async () => {
+async function doWake() {
  setBusy("shift", "Waking…");
- $("status").className = "status working";
- $("status-pill").textContent = "waking";
- $("status-text").textContent = "Waking the night shift. First tool calls land after spawn.";
- $("war-live").className = "war__live is-live";
- $("war-live").textContent = "live";
- $("war-title").textContent = "Night shift · working";
- startBoot();
- pollMs = 400;
+ setPill("live", "waking");
+ $("hint").textContent = "Handing the pager to Nightshift…";
+ ensureWorking();
+ pushWorkStep("Starting the night shift");
+ pollMs = 450;
  try {
  const res = await fetch("/api/shift", { method: "POST" });
  if (!res.ok) {
  const err = await res.json().catch(() => ({}));
- stopBoot();
- $("status-text").textContent = err.detail || err.error || ("Wake failed (" + res.status + ")");
+ addRow("status", "system", esc(err.detail || err.error || "Wake failed"));
  }
- } catch (e) {
- stopBoot();
- $("status-text").textContent = "Wake request failed. Check the demo server.";
+ } catch {
+ addRow("status", "system", "Wake request failed");
  } finally {
  clearBusy();
  lastSig = "";
  await poll();
  }
-};
+}
 
-$("reset").onclick = async () => {
+async function doReset() {
  setBusy("reset", "Restoring…");
- stopBoot();
  try {
  await fetch("/api/reset", { method: "POST" });
  } finally {
@@ -925,7 +772,31 @@ $("reset").onclick = async () => {
  resetChrome();
  await poll();
  }
+}
+
+$("break").onclick = () => doBreak();
+$("shift").onclick = () => doWake();
+$("reset").onclick = () => doReset();
+
+$("compose").onsubmit = async (e) => {
+ e.preventDefault();
+ const raw = ($("input").value || "").trim().toLowerCase();
+ if (!raw) return;
+ $("input").value = "";
+ if (raw === "break" || raw.includes("break")) return doBreak();
+ if (raw === "wake" || raw.includes("wake") || raw.includes("night")) return doWake();
+ if (raw === "restore" || raw.includes("restore") || raw.includes("reset")) return doReset();
+ addRow("user", "You", esc(raw));
+ addRow(
+ "assistant",
+ "Nightshift",
+ "This demo is driven by the three buttons. Type <b>break</b>, <b>wake</b>, or <b>restore</b> — or use the buttons above."
+ );
 };
+
+$("input").addEventListener("input", () => {
+ $("send").disabled = !$("input").value.trim() || !!busy;
+});
 
 schedulePoll();
 poll();
