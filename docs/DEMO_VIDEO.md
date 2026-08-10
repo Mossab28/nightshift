@@ -39,10 +39,10 @@ pendant le chargement si besoin.**
 > real pipeline, on a real DataHub instance, with about a thousand entities
 > in the graph. No mocks, no fake data. What you see is what the agent sees.
 
-## Étape 4 — Casser le pipeline
+## Étape 4 — Casser le pipeline (et NE RIEN réveiller)
 
 **Survole le bouton rouge « Break the pipeline » une seconde, puis clique.
-Le bandeau passe en BROKEN.**
+Le bandeau passe en BROKEN. Reste sur la page.**
 
 > So... someone's about to rename a column upstream, in the middle of the
 > night, without telling a single soul. Here we go. Breaking it.
@@ -53,17 +53,26 @@ Le bandeau passe en BROKEN.**
 > order_amount. Every transformation downstream still selects the old name.
 > Which means nulls everywhere, and a revenue dashboard that reads zero.
 > Finance is going to see that first. Not great.
+>
+> And now — watch. I'm not going to wake anyone. I'm not even going to
+> touch the keyboard.
 
-## Étape 5 — Réveiller la night shift
+## Étape 5 — Le Sentinel détecte tout seul
 
-**Clique « Wake the night shift ». Une petite fenêtre s'ouvre avec deux
-champs déjà remplissables : dans Symptom tape par exemple « revenue dashboard
-reads zero since last night », laisse l'URN proposé, clique « Start the
-shift ». Tu arrives sur le night desk.**
+**NE CLIQUE RIEN. Sous 30 à 60 secondes, le bandeau passe tout seul en
+« running ». (Si l'attente est longue, coupe la caméra et reprends juste
+avant le changement.) Quand ça bascule :**
 
-> So now... we wake the night shift. I just tell it what looks wrong — the
-> revenue dashboard reads zero since last night — and where it hurts. And
-> the agent takes the pager.
+> There. That's the Sentinel. It fingerprints the schema of every watched
+> dataset, it just caught the drift on its own — and it woke the night
+> shift itself. Nobody pressed a button. Nobody paged a human. That's the
+> point.
+
+**Puis clique « Shifts » dans la nav de gauche. Le shift tout en haut porte
+le badge « sentinel » — pointe-le avec la souris. Clique dessus : le night
+desk s'ouvre.**
+
+> Look at the trigger: sentinel. Not me. Let's watch it work.
 
 ## Étape 6 — Le night desk (le cœur — laisse tourner, parle par-dessus)
 
@@ -72,7 +81,8 @@ la souris : les bulles de chat à gauche, la checklist à droite. Tu couperas
 les longueurs au montage — parle quand il se passe quelque chose.**
 
 > And we're in the night desk. You've got the agent's chat on the left, and
-> the DataHub write-back checklist on the right.
+> the DataHub write-back checklist on the right. The pager message up top —
+> the Sentinel wrote that itself: schema change detected, columns named.
 >
 > Now watch what it does first. It doesn't touch the lineage. It asks the
 > graph's memory: have we seen this exact failure before? That's the whole
