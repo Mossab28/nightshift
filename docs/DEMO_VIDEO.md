@@ -96,19 +96,27 @@ les longueurs au montage — parle quand il se passe quelque chose.**
 > First time we hit this break, cold, it took fourteen tool calls. From
 > memory, it's a handful. An investigation becomes a lookup.
 
-## Étape 7 — La preuve dans DataHub
+## Étape 7 — La preuve dans DataHub (simplifiée : 1 dataset, 2 onglets)
 
-**AVANT de filmer : ouvre http://localhost:19002 et connecte-toi (datahub /
-datahub) — la session tient, tu n'auras plus l'écran de login pendant la
-prise. Pendant la prise : va sur le dataset order_details : onglet
-Incidents, puis Documentation, puis Validation. Trois plans courts.**
+**AVANT de filmer : connecte-toi une fois sur http://localhost:19002
+(datahub / datahub) et pré-ouvre CES DEUX onglets :**
 
-> But here's my favorite part. Go into DataHub itself. Boom — the incident,
-> raised and resolved by the agent. The postmortem, written into the
-> dataset's documentation, for whoever opens this at nine a.m. And in
-> Validations — the guard it left on that column. This exact break can
-> never happen silently again. Every conclusion lives in the graph, where
-> the next human and the next agent will find it.
+Onglet A (Incidents) :
+http://localhost:19002/dataset/urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)/Incidents
+
+Onglet B (Documentation) :
+http://localhost:19002/dataset/urn:li:dataset:(urn:li:dataPlatform:powerbi,b2fd91.datahub_order_entries.Essential_KPI_Measures,PROD)/Documentation
+
+**PENDANT la prise : quand le morning report est affiché, coupe la caméra,
+fais Cmd+R sur les deux onglets, reprends la caméra. Plan A : la pile
+d'incidents RESOLVED, le tout frais en haut. Plan B : le postmortem dans la
+doc. 5 secondes chacun.**
+
+> But here's my favorite part. Go into DataHub itself. Boom — the incidents,
+> raised and resolved by the agent, night after night. And the postmortem,
+> written right into the dataset's documentation, for whoever opens this at
+> nine a.m. Every conclusion lives in the graph, where the next human and
+> the next agent will find it.
 
 ## Étape 8 — La PR
 
