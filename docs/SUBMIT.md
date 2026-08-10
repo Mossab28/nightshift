@@ -1,12 +1,98 @@
-# SUBMIT NOW - founder paste pack
+# SUBMIT NOW - Devpost paste pack
 
-Deadline: Aug 10. Video is yours. Everything below is ready to paste.
+Deadline: Aug 10. Video last. Everything else below is ready to paste.
 
-Live status at pack time: landing / app / try.* = 200 · evidence script OK · try break/reset OK.
+Live check: landing / app / try.* = 200 · `verify_judging_evidence.py` = OK.
+
+Thumbnail file: `docs/assets/nightshift-devpost-thumbnail.png`
 
 ---
 
-## 1) Slack `#agent-hackathon` (paste once)
+## Step 1 - General info (déjà fait si rempli)
+
+| Field | Paste |
+|---|---|
+| Project name | Nightshift |
+| Tagline / elevator pitch | The on-call data team that gets smarter every night. |
+| Thumbnail | `docs/assets/nightshift-devpost-thumbnail.png` |
+| Track | Agents That Do Real Work |
+
+Elevator pitch (si champ long):
+
+```
+On-call data agents on DataHub. They take the pager, fix the break, and write the night back into the graph so the next one is a lookup (14 to 5 tool calls, 2.2 to 1.1 min on the same incident).
+```
+
+---
+
+## Step 2 - Project details (About the project)
+
+Paste the full markdown block from [`docs/devpost.md`](devpost.md) section **ABOUT THE PROJECT (paste below)** into Devpost *About the project*.
+
+### Built with (tags, up to 25)
+
+```
+DataHub
+DataHub MCP Server
+Claude Agent SDK
+Python
+MCP
+dbt
+TypeScript
+Apache 2.0
+Agent Context Kit
+```
+
+### Try it out links (add each)
+
+1. https://nightshift.51-91-121-153.sslip.io
+2. https://try.nightshift.51-91-121-153.sslip.io
+3. https://nightshift.51-91-121-153.sslip.io/app
+4. https://github.com/Mossab28/nightshift
+5. https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
+6. https://github.com/datahub-project/datahub-skills/pull/126
+7. https://github.com/Mossab28/nightshift-dbt-demo/pull/3
+
+### Video demo link
+
+Leave empty until your video is up. Save & continue.
+
+### Image gallery (toi)
+
+After one try.* Break → Wake:
+
+1. try.* mid-shift (transcript + write-back rail)
+2. DataHub Incidents (opened/resolved)
+3. DataHub Documentation (postmortem)
+4. DataHub Validations (EXTERNAL presence guard)
+5. GitHub draft fix PR (nightshift-dbt-demo#3)
+6. Landing hero (optional)
+7. /app war room (optional)
+
+---
+
+## Step 3 - Additional info (si demandé)
+
+| Field | Paste |
+|---|---|
+| Repo | https://github.com/Mossab28/nightshift |
+| Demo login | `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026` |
+| Judge route | https://github.com/Mossab28/nightshift/blob/main/JUDGING.md |
+| Upstream skill | https://github.com/datahub-project/datahub-skills/pull/126 |
+| Packaging issue | https://github.com/datahub-project/datahub/issues/19028 |
+
+Notes / how to run (short):
+
+```
+Judge path (60s): open try.* → Break the pipeline → Wake the night shift → watch write-back rail.
+Connected product: /app with demo login above.
+Local: make demo (DataHub quickstart + datapack + break + shift).
+Evidence: python scripts/verify_judging_evidence.py
+```
+
+---
+
+## Slack `#agent-hackathon` (paste once)
 
 ```
 Hey all - shipping Nightshift for Agents That Do Real Work.
@@ -23,76 +109,20 @@ Happy to take feedback.
 
 ---
 
-## 2) Devpost form - field map
+## Pre-submit checkbox
 
-| Field | Paste |
-|---|---|
-| Project name | Nightshift |
-| Tagline | The on-call data team that gets smarter every night. |
-| Track | Agents That Do Real Work |
-| Repo | https://github.com/Mossab28/nightshift |
-| Demo / website | https://nightshift.51-91-121-153.sslip.io |
-| Video | *(your link)* |
-| Built with | DataHub OSS, DataHub MCP Server, Claude Agent SDK, Python, Apache 2.0 |
-
-**Also put in "Try it" / notes / built with extras:**
-
-- Judge sandbox: https://try.nightshift.51-91-121-153.sslip.io
-- War room login: `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`
-- JUDGING.md: https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
-- Skills PR: https://github.com/datahub-project/datahub-skills/pull/126
-- Issue: https://github.com/datahub-project/datahub/issues/19028
-- dbt fix PR: https://github.com/Mossab28/nightshift-dbt-demo/pull/3
-
-**Long text fields:** copy section bodies from [`docs/devpost.md`](devpost.md) in order:
-
-1. Inspiration  
-2. What it does  
-3. How we built it  
-4. Challenges we ran into  
-5. Accomplishments we're proud of  
-6. What we learned  
-7. What's next  
-
----
-
-## 3) Screenshot checklist (attach to Devpost)
-
-Do these after one try.* Break → Wake (or from existing DataHub demo graph):
-
-1. **try.*** mid-shift - transcript + write-back rail lit  
-2. **DataHub Incidents** - incident opened/resolved on the PowerBI / dbt asset  
-3. **DataHub Documentation** - postmortem prose on the dataset  
-4. **DataHub Validations** - EXTERNAL presence guard  
-5. **GitHub** - draft fix PR on nightshift-dbt-demo  
-6. **Landing** - hero or war-room replay (optional)  
-7. **N1 vs N3** - table from README / shift-reports (optional image)
-
-File names suggestion: `01-try.png` … `05-fix-pr.png`
-
----
-
-## 4) Judge 60s (same as JUDGING.md)
-
-1. try.* → Break → Wake  
-2. Watch rail write-back  
-3. Optional /app tour (demo login)  
-4. skills#126 + dbt PR + examples/shift-reports  
-
----
-
-## 5) Pre-submit checkbox
-
-- [ ] `python scripts/verify_judging_evidence.py` → OK  
-- [ ] try.* Break works; Restore works  
-- [ ] Devpost fields pasted from this file + `devpost.md`  
-- [ ] Screens 1-5 attached  
-- [ ] Slack message posted once  
-- [ ] Video URL slotted into Devpost + JUDGING when ready  
-- [ ] No overclaim: presence guard ≠ value-level test  
+- [ ] Thumbnail uploaded
+- [ ] About the project pasted from `docs/devpost.md`
+- [ ] Built with tags added
+- [ ] Try it out links added
+- [ ] Screens 1-5 attached
+- [ ] Additional info / login notes
+- [ ] Slack posted once
+- [ ] Video URL when ready
+- [ ] No overclaim: presence guard is not a value-level test
 
 ---
 
 ## Differentiator (lock)
 
-> Not another pre-merge schema bot. Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup.
+Not another pre-merge schema bot. Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup.

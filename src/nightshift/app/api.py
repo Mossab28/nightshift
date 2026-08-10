@@ -30,20 +30,33 @@ class Credentials(BaseModel):
     password: str
 
 
+#: Public demo mode: everyone lands signed in on the demo account. Set
+#: NIGHTSHIFT_PUBLIC_USER to that account's email to enable; unset = real auth.
+def _public_user() -> User | None:
+    import os
+
+    email = os.environ.get("NIGHTSHIFT_PUBLIC_USER", "").lower()
+    if not email:
+        return None
+    with SessionFactory() as db:
+        return db.query(User).filter_by(email=email).first()
+
+
 def _current_user(request: Request) -> User:
     token = request.cookies.get(COOKIE)
-    if not token:
-        raise HTTPException(401, "not signed in")
-    with SessionFactory() as db:
-        session = db.get(DbSession, token)
-        if not session or session.expires_at < dt.datetime.now(dt.timezone.utc).replace(
-            tzinfo=None
-        ):
-            raise HTTPException(401, "session expired")
-        user = db.get(User, session.user_id)
-        if not user:
-            raise HTTPException(401, "unknown user")
-        return user
+    if token:
+        with SessionFactory() as db:
+            session = db.get(DbSession, token)
+            if session and session.expires_at >= dt.datetime.now(
+                dt.timezone.utc
+            ).replace(tzinfo=None):
+                user = db.get(User, session.user_id)
+                if user:
+                    return user
+    public = _public_user()
+    if public:
+        return public
+    raise HTTPException(401, "not signed in")
 
 
 @router.post("/auth/register")
