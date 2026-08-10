@@ -239,6 +239,83 @@ LIVE_PAGE = r"""<!doctype html>
  max-width: 100%;
  align-self: stretch;
  }
+ .msg.is-enter {
+ animation: msg-in 420ms var(--ease) both;
+ }
+ .msg--boot .msg__body {
+ color: var(--slate);
+ font-family: var(--mono);
+ font-size: 12.5px;
+ }
+ .msg--boot .msg__who { color: var(--slate-dim); }
+ .msg__body.has-caret::after,
+ .msg__tool-detail.has-caret::after {
+ content: "";
+ display: inline-block;
+ width: 0.55ch;
+ height: 1.05em;
+ margin-left: 3px;
+ vertical-align: -2px;
+ background: var(--moon);
+ animation: caret-blink 1s steps(1) infinite;
+ }
+ .stream-hint {
+ font-family: var(--mono);
+ font-size: 12px;
+ color: var(--slate-dim);
+ padding: 4px 0 2px;
+ letter-spacing: 0.02em;
+ }
+ .stream-hint .dots::after {
+ content: "";
+ animation: dots 1.2s steps(4, end) infinite;
+ }
+ button.is-busy {
+ opacity: 0.85;
+ cursor: wait;
+ }
+ .war__live.is-live {
+ animation: live-pulse 1.6s ease-in-out infinite;
+ }
+ .war__aspects li.is-flash {
+ animation: aspect-flash 520ms var(--ease);
+ }
+ .war__step.is-on {
+ animation: step-hit 360ms var(--ease);
+ }
+ @keyframes msg-in {
+ from { opacity: 0; transform: translateY(8px); }
+ to { opacity: 1; transform: none; }
+ }
+ @keyframes caret-blink {
+ 0%, 49% { opacity: 1; }
+ 50%, 100% { opacity: 0; }
+ }
+ @keyframes dots {
+ 0% { content: ""; }
+ 25% { content: "."; }
+ 50% { content: ".."; }
+ 75%, 100% { content: "..."; }
+ }
+ @keyframes live-pulse {
+ 0%, 100% { box-shadow: 0 0 0 0 rgba(138, 104, 24, 0); }
+ 50% { box-shadow: 0 0 0 4px rgba(138, 104, 24, 0.12); }
+ }
+ @keyframes aspect-flash {
+ from { background: rgba(138, 104, 24, 0.14); }
+ to { background: rgba(255, 255, 255, 0.03); }
+ }
+ @keyframes step-hit {
+ from { transform: translateY(2px); }
+ to { transform: none; }
+ }
+ @media (prefers-reduced-motion: reduce) {
+ .msg.is-enter, .war__live.is-live, .war__aspects li.is-flash, .war__step.is-on {
+ animation: none;
+ }
+ .msg__body.has-caret::after, .msg__tool-detail.has-caret::after { animation: none; opacity: 1; }
+ .stream-hint .dots::after { animation: none; content: "..."; }
+ }
  .msg__who {
  font-family: var(--mono);
  font-size: 11px;
@@ -446,15 +523,31 @@ const aspectFor = label => {
 
 const lit = new Set();
 let lastSig = "";
+let painted = { planted: false, events: 0, conclusion: false };
+let busy = null;
+let pollMs = 1500;
+let pollTimer = null;
+let bootTimer = null;
+let bootIdx = 0;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const BOOT_LINES = [
+ "Spawning DataHub MCP and write tools",
+ "Loading lineage + schema context",
+ "Handing the pager to the night shift",
+ "Waiting for the first tool call",
+];
 
 function resetChrome() {
  lit.clear();
+ painted = { planted: false, events: 0, conclusion: false };
+ stopBoot();
  $("stream").innerHTML = "";
  $("war-steps").querySelectorAll(".war__step").forEach(el => {
  el.classList.remove("is-on", "is-done");
  });
  $("aspects").querySelectorAll("li").forEach(li => {
- li.classList.remove("is-on");
+ li.classList.remove("is-on", "is-flash");
  li.querySelector("b").textContent = "·";
  });
 }
@@ -474,12 +567,16 @@ function setStep(name) {
  });
 }
 
-function lightAspect(key) {
+function lightAspect(key, flash) {
  if (!key || lit.has(key)) return;
  lit.add(key);
  const li = $("aspects").querySelector(`[data-aspect="${key}"]`);
  if (!li) return;
  li.classList.add("is-on");
+ if (flash !== false && !reduceMotion) {
+ li.classList.add("is-flash");
+ setTimeout(() => li.classList.remove("is-flash"), 560);
+ }
  li.querySelector("b").textContent = key === "recall" ? "read" : "written";
 }
 
@@ -496,64 +593,180 @@ function pagerText(planted) {
  (`${planted.old_column} became ${planted.new_column} upstream. Downstream still selects the old name.`);
 }
 
-function renderStream(s) {
- const stream = $("stream");
- const parts = [];
+function clearCarets() {
+ $("stream").querySelectorAll(".has-caret").forEach(el => el.classList.remove("has-caret"));
+}
 
- if (s.planted) {
- parts.push(
- `<div class="msg msg--pager">` +
- `<div class="msg__who">pager</div>` +
- `<div class="msg__body">${esc(pagerText(s.planted))}</div></div>`
- );
+function appendHtml(html) {
+ const stream = $("stream");
+ const wrap = document.createElement("div");
+ wrap.innerHTML = html.trim();
+ const el = wrap.firstElementChild;
+ if (!el) return null;
+ if (!reduceMotion) el.classList.add("is-enter");
+ stream.appendChild(el);
+ stream.scrollTop = stream.scrollHeight;
+ return el;
+}
+
+function typeInto(el, text, cps) {
+ const full = String(text || "");
+ if (!el || reduceMotion || full.length < 8) {
+ el.textContent = full;
+ return;
+ }
+ el.textContent = "";
+ el.classList.add("has-caret");
+ let i = 0;
+ const step = Math.max(1, Math.ceil(full.length / 80));
+ const tick = () => {
+ i = Math.min(full.length, i + step);
+ el.textContent = full.slice(0, i);
+ $("stream").scrollTop = $("stream").scrollHeight;
+ if (i < full.length) setTimeout(tick, cps || 14);
+ else setTimeout(() => el.classList.remove("has-caret"), 700);
+ };
+ tick();
+}
+
+function msgPager(text) {
+ return `<div class="msg msg--pager"><div class="msg__who">pager</div><div class="msg__body"></div></div>`;
+}
+
+function msgThought(detail, stamp) {
+ return `<div class="msg msg--agent"><div class="msg__who">nightshift</div>` +
+ `<div class="msg__body"><span class="msg__type"></span>` +
+ `<div style="opacity:.45;font:11px var(--mono);margin-top:4px">${esc(stamp)}</div></div></div>`;
+}
+
+function msgTool(label, stamp, detail, tone) {
+ return `<div class="msg msg--tool"><div class="msg__who">tool</div><div class="msg__tool">` +
+ `<span class="msg__tool-name ${tone}">${esc(label)}</span>` +
+ `<span class="msg__tool-stamp">${esc(stamp)}</span>` +
+ `<span class="msg__tool-detail"></span></div></div>`;
+}
+
+function msgReport(text) {
+ return `<div class="msg msg--report"><div class="msg__who">report</div><div class="msg__body"></div></div>`;
+}
+
+function msgBoot(text) {
+ return `<div class="msg msg--boot" data-boot="1"><div class="msg__who">system</div>` +
+ `<div class="msg__body">${esc(text)}<span class="dots"></span></div></div>`;
+}
+
+function stopBoot() {
+ if (bootTimer) clearInterval(bootTimer);
+ bootTimer = null;
+ bootIdx = 0;
+ $("stream").querySelectorAll("[data-boot]").forEach(el => el.remove());
+ const hint = $("stream").querySelector(".stream-hint");
+ if (hint) hint.remove();
+}
+
+function startBoot() {
+ if (bootTimer) return;
+ if (!$("stream").querySelector(".stream-hint")) {
+ appendHtml(`<div class="stream-hint">Shift starting<span class="dots"></span></div>`);
+ }
+ if (reduceMotion) return;
+ bootIdx = 0;
+ bootTimer = setInterval(() => {
+ if (bootIdx >= BOOT_LINES.length) return;
+ appendHtml(msgBoot(BOOT_LINES[bootIdx]));
+ bootIdx += 1;
+ }, 1100);
+}
+
+function syncStream(s) {
+ const events = s.events || [];
+
+ if (s.planted && !painted.planted) {
+ const el = appendHtml(msgPager());
+ const body = el.querySelector(".msg__body");
+ typeInto(body, pagerText(s.planted), 10);
+ body.dataset.final = "1";
+ painted.planted = true;
+ } else if (s.planted && painted.planted) {
+ const body = $("stream").querySelector(".msg--pager .msg__body");
+ if (body && body.dataset.final !== "1") {
+ body.textContent = pagerText(s.planted);
+ body.dataset.final = "1";
+ }
  }
 
- (s.events || []).forEach(ev => {
+ if (events.length) stopBoot();
+ else if (s.shift_running && !s.conclusion) startBoot();
+ if (!s.shift_running) stopBoot();
+
+ for (let i = painted.events; i < events.length; i++) {
+ const ev = events[i];
  const css = classify(ev);
  const stamp = (ev.at || "").split("T").pop() || "";
  const label = ev.label || (css === "thought" ? "thinking" : "");
  const step = stepFor(label, ev.kind);
  if (step) setStep(step);
  const aspect = aspectFor(label);
- if (aspect) lightAspect(aspect);
+ if (aspect) lightAspect(aspect, true);
 
+ clearCarets();
  if (css === "thought") {
- parts.push(
- `<div class="msg msg--agent">` +
- `<div class="msg__who">nightshift</div>` +
- `<div class="msg__body">${esc(ev.detail || "")}<div style="opacity:.45;font:11px var(--mono);margin-top:4px">${esc(stamp)}</div></div></div>`
- );
+ const el = appendHtml(msgThought(ev.detail, stamp));
+ typeInto(el.querySelector(".msg__type"), ev.detail || "", 12);
  } else {
  const tone = css === "memory" ? "is-memory" : css === "write" ? "is-write" : "";
- parts.push(
- `<div class="msg msg--tool">` +
- `<div class="msg__who">tool</div>` +
- `<div class="msg__tool">` +
- `<span class="msg__tool-name ${tone}">${esc(label)}</span>` +
- `<span class="msg__tool-stamp">${esc(stamp)}</span>` +
- `<span class="msg__tool-detail">${esc(ev.detail || "")}</span>` +
- `</div></div>`
- );
+ const el = appendHtml(msgTool(label, stamp, ev.detail, tone));
+ typeInto(el.querySelector(".msg__tool-detail"), ev.detail || "", 8);
+ }
+ }
+ painted.events = events.length;
+
+ if (s.conclusion && !painted.conclusion) {
+ clearCarets();
+ const el = appendHtml(msgReport());
+ typeInto(el.querySelector(".msg__body"), s.conclusion, 10);
+ setStep("fix");
+ painted.conclusion = true;
+ }
+}
+
+function setBusy(id, label) {
+ busy = id;
+ ["break", "shift", "reset"].forEach(bid => {
+ const b = $(bid);
+ if (!b) return;
+ if (bid === id) {
+ b.classList.add("is-busy");
+ b.dataset.label = b.dataset.label || b.textContent;
+ b.textContent = label;
+ b.disabled = true;
+ } else {
+ b.disabled = true;
  }
  });
+}
 
- if (s.conclusion) {
- parts.push(
- `<div class="msg msg--report">` +
- `<div class="msg__who">report</div>` +
- `<div class="msg__body">${esc(s.conclusion)}</div></div>`
- );
- setStep("fix");
- }
-
- stream.innerHTML = parts.join("");
- stream.scrollTop = stream.scrollHeight;
+function clearBusy() {
+ if (!busy) return;
+ const b = $(busy);
+ if (b && b.dataset.label) b.textContent = b.dataset.label;
+ ["break", "shift", "reset"].forEach(bid => $(bid).classList.remove("is-busy"));
+ busy = null;
 }
 
 async function poll() {
- const s = await (await fetch("/api/state")).json();
+ let s;
+ try {
+ s = await (await fetch("/api/state")).json();
+ } catch (e) {
+ return;
+ }
+
+ if (!busy) {
  $("break").disabled = !!s.planted || s.shift_running;
  $("shift").disabled = !s.planted || s.shift_running;
+ $("reset").disabled = !!s.shift_running;
+ }
 
  const st = $("status");
  const pill = $("status-pill");
@@ -564,10 +777,13 @@ async function poll() {
  if (s.shift_running) {
  st.className = "status working";
  pill.textContent = "running";
- text.textContent = "The night shift is working. Watch the conversation.";
+ text.textContent = s.events && s.events.length
+ ? "Tools firing. Watch the stream and the write-back rail."
+ : "Cold start: spawning tools. First lines land in a moment.";
  live.className = "war__live is-live";
  live.textContent = "live";
  title.textContent = "Night shift · working";
+ pollMs = 400;
  } else if (s.conclusion) {
  st.className = "status done";
  pill.textContent = "done";
@@ -575,6 +791,7 @@ async function poll() {
  live.className = "war__live is-done";
  live.textContent = "done";
  title.textContent = "Night shift · morning";
+ pollMs = 1500;
  } else if (s.planted) {
  st.className = "status broken";
  pill.textContent = "planted";
@@ -583,6 +800,7 @@ async function poll() {
  live.className = "war__live";
  live.textContent = "planted";
  title.textContent = "Night shift · waiting";
+ pollMs = 1000;
  } else {
  st.className = "status";
  pill.textContent = "healthy";
@@ -590,24 +808,42 @@ async function poll() {
  live.className = "war__live";
  live.textContent = "idle";
  title.textContent = "Night shift · demo";
+ pollMs = 1500;
  }
 
- const sig = s.events.length + "|" + (s.conclusion ? "1" : "0") + "|" + (s.planted ? "1" : "0") + "|" + (s.shift_running ? "1" : "0");
+ const events = s.events || [];
+ const sig = events.length + "|" + (s.conclusion ? "1" : "0") + "|" +
+ (s.planted ? "1" : "0") + "|" + (s.shift_running ? "1" : "0");
+
+ if (!s.planted && !events.length && !s.conclusion && !s.shift_running) {
  if (sig !== lastSig) {
  lastSig = sig;
- if (!s.planted && !s.events.length && !s.conclusion) {
  resetChrome();
+ }
  } else {
- /* Re-light steps/aspects from scratch each paint. */
+ if (events.length < painted.events || (!s.planted && painted.planted && !busy)) {
+ resetChrome();
+ lastSig = "";
+ }
+ if (sig !== lastSig || (s.shift_running && !events.length)) {
+ lastSig = sig;
  lit.clear();
  $("war-steps").querySelectorAll(".war__step").forEach(el => {
  el.classList.remove("is-on", "is-done");
  });
  $("aspects").querySelectorAll("li").forEach(li => {
- li.classList.remove("is-on");
+ li.classList.remove("is-on", "is-flash");
  li.querySelector("b").textContent = "·";
  });
- renderStream(s);
+ syncStream(s);
+ events.forEach(ev => {
+ const label = ev.label || "";
+ const step = stepFor(label, ev.kind);
+ if (step) setStep(step);
+ const aspect = aspectFor(label);
+ if (aspect) lightAspect(aspect, false);
+ });
+ if (s.conclusion) setStep("fix");
  }
  }
 
@@ -616,21 +852,82 @@ async function poll() {
  : "";
 }
 
+function schedulePoll() {
+ if (pollTimer) clearTimeout(pollTimer);
+ pollTimer = setTimeout(async () => {
+ await poll();
+ schedulePoll();
+ }, pollMs);
+}
+
 $("break").onclick = async () => {
- await fetch("/api/break", { method: "POST" });
- poll();
+ setBusy("break", "Breaking…");
+ $("status").className = "status broken";
+ $("status-pill").textContent = "breaking";
+ $("status-text").textContent = "Planting a silent upstream rename in DataHub…";
+ $("war-live").textContent = "breaking";
+ if (!painted.planted) {
+ const el = appendHtml(msgPager());
+ typeInto(el.querySelector(".msg__body"),
+ "Planting upstream rename. Downstream still selects the old column…", 10);
+ painted.planted = true;
+ }
+ try {
+ const res = await fetch("/api/break", { method: "POST" });
+ if (!res.ok) {
+ const err = await res.json().catch(() => ({}));
+ $("status-text").textContent = err.detail || err.error || ("Break failed (" + res.status + ")");
+ }
+ } catch (e) {
+ $("status-text").textContent = "Break request failed. Check the demo server.";
+ } finally {
+ clearBusy();
+ lastSig = "";
+ await poll();
+ }
 };
+
 $("shift").onclick = async () => {
- await fetch("/api/shift", { method: "POST" });
- poll();
+ setBusy("shift", "Waking…");
+ $("status").className = "status working";
+ $("status-pill").textContent = "waking";
+ $("status-text").textContent = "Waking the night shift. First tool calls land after spawn.";
+ $("war-live").className = "war__live is-live";
+ $("war-live").textContent = "live";
+ $("war-title").textContent = "Night shift · working";
+ startBoot();
+ pollMs = 400;
+ try {
+ const res = await fetch("/api/shift", { method: "POST" });
+ if (!res.ok) {
+ const err = await res.json().catch(() => ({}));
+ stopBoot();
+ $("status-text").textContent = err.detail || err.error || ("Wake failed (" + res.status + ")");
+ }
+ } catch (e) {
+ stopBoot();
+ $("status-text").textContent = "Wake request failed. Check the demo server.";
+ } finally {
+ clearBusy();
+ lastSig = "";
+ await poll();
+ }
 };
+
 $("reset").onclick = async () => {
+ setBusy("reset", "Restoring…");
+ stopBoot();
+ try {
  await fetch("/api/reset", { method: "POST" });
+ } finally {
+ clearBusy();
  lastSig = "";
  resetChrome();
- poll();
+ await poll();
+ }
 };
-setInterval(poll, 1500);
+
+schedulePoll();
 poll();
 </script>
 </body>
