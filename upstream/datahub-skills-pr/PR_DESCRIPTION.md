@@ -28,5 +28,3 @@ Both paths run in production in [Nightshift](https://github.com/Mossab28/nightsh
 ## Alternative shape
 
 If you'd rather not add a separate skill, we're happy to rework this as a section inside `datahub-quality` instead - e.g. an "OSS write operations" step plus corrections to the tier table and the Common Mistakes entry about `raiseIncident`. Maintainers' call; the content ports directly either way.
-
-🤖 Generated with [Claude Code](https://claude.com/claude-code)
