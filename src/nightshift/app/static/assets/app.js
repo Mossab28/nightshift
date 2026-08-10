@@ -84,7 +84,7 @@ function shell(active, contentNode, opts = {}) {
  <div class="shell-root${desk ? " shell-root--desk" : ""}">
  <header class="topbar">
  <a href="/" class="wordmark"><span class="moon">&#9789;</span>Nightshift</a>
- ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<a class="ws" href="/">Home</a>`}
+ ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<a class="ws ws--home" href="/" title="Home" aria-label="Home"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/></svg></a>`}
  <span class="spacer"></span>
  ${desk ? "" : `<button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>`}
  <span class="who"></span>

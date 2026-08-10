@@ -774,3 +774,18 @@ a.row:hover { background: rgba(20, 22, 28, 0.04); text-decoration: none; }
  main.content { padding: 20px 16px 48px; }
  .topbar .who { display: none; }
 }
+
+/* Home icon in the topbar */
+.ws--home {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  color: inherit;
+  opacity: 0.55;
+  transition: opacity 150ms ease, background 150ms ease;
+}
+.ws--home:hover { opacity: 1; background: rgba(20, 22, 28, 0.06); }
+.ws--home svg { display: block; }
