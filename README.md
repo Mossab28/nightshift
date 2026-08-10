@@ -2,9 +2,9 @@
 
 **The on-call data team that gets smarter every night.**
 
-[Live demo](https://nightshift.51-91-121-153.sslip.io) · [Break it yourself](https://try.nightshift.51-91-121-153.sslip.io) · [JUDGING.md (60s)](JUDGING.md) · [Upstream PR datahub-skills#126](https://github.com/datahub-project/datahub-skills/pull/126) · [Apache 2.0](LICENSE)
+[Live demo](https://nightshift.51-91-121-153.sslip.io) · [Break it yourself](https://try.nightshift.51-91-121-153.sslip.io) · [JUDGING.md (60s)](JUDGING.md) · [How we win](docs/WIN.md) · [Upstream PR datahub-skills#126](https://github.com/datahub-project/datahub-skills/pull/126) · [Apache 2.0](LICENSE)
 
-**try.*** is the judge sandbox (break / wake / restore on a real graph). **/app** is the connected war room (your DataHub, Sentinel, history). Same agent loop; different entry.
+**try.*** is the judge sandbox (break / wake / restore on a real graph). **/app** is the connected war room (your DataHub, Sentinel, history). Same agent loop; different entry. The dbt **demo PR** is a real draft fix the agent opened ([nightshift-dbt-demo#3](https://github.com/Mossab28/nightshift-dbt-demo/pull/3)) — proof of “agents that do real work,” not a screenshot.
 
 ![Nightshift landing](docs/media/landing.png)
 

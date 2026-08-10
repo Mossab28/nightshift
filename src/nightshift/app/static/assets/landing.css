@@ -6,21 +6,37 @@
  */
 
 :root {
-  --paper: #000000;
-  --surface: #15171b;
-  --surface-bar: #1c1f25;
-  --ink: #ffffff;
-  --ink-2: rgba(255, 255, 255, 0.66);
-  --slate: rgba(255, 255, 255, 0.52);
-  --slate-dim: rgba(255, 255, 255, 0.38);
-  --rule: rgba(255, 255, 255, 0.17);
-  --rule-soft: rgba(255, 255, 255, 0.12);
-  --moon: #ffd76e;
-  --tool: #6ea8ff;
-  --memory: #b98aff;
-  --write: #5fd29a;
-  --alarm: #ff6b6b;
-  --radius-surface: 18px;
+  /* Night (outside) — hero, nav over hero, closing night */
+  --night: #050507;
+  --paper: #050507;
+  --surface: #14161c;
+  --surface-bar: #1a1d24;
+  --ink: #f4f5f7;
+  --ink-2: rgba(244, 245, 247, 0.72);
+  --slate: rgba(244, 245, 247, 0.55);
+  --slate-dim: rgba(244, 245, 247, 0.4);
+  --rule: rgba(255, 255, 255, 0.16);
+  --rule-soft: rgba(255, 255, 255, 0.1);
+  --moon: #e8c36a;
+  --tool: #5b8fd4;
+  --memory: #8b6bc7;
+  --write: #3fa87a;
+  --alarm: #d45454;
+  --radius-surface: 8px;
+  /* Desk blotter (cool paper — not warm cream AI default) */
+  --blotter: #e4e7ec;
+  --blotter-card: #f7f8fa;
+  --blotter-ink: #14161c;
+  --blotter-ink-2: rgba(20, 22, 28, 0.72);
+  --blotter-slate: rgba(20, 22, 28, 0.55);
+  --blotter-dim: rgba(20, 22, 28, 0.4);
+  --blotter-rule: rgba(20, 22, 28, 0.14);
+  --blotter-rule-soft: rgba(20, 22, 28, 0.09);
+  --blotter-moon: #8a6818;
+  --blotter-tool: #2b5f9e;
+  --blotter-memory: #5c408f;
+  --blotter-write: #1a6b48;
+  --blotter-alarm: #a82828;
   --shell: 1120px;
   --gutter: clamp(20px, 5vw, 40px);
   --sp-section: clamp(88px, 11vw, 172px);
@@ -43,7 +59,7 @@ html {
 }
 
 body {
-  background: var(--paper);
+  background: var(--night);
   color: var(--ink);
   font-family: var(--font-body);
   font-weight: 500;
@@ -1281,3 +1297,176 @@ a { color: inherit; text-decoration: none; }
   .pulse { animation: none; }
   .btn:active { transform: none; }
 }
+
+
+/* ==========================================================================
+   NIGHT DESK — interior after the hero
+   Cool blotter paper, stamp boxes, ink. Night stays outside.
+   ========================================================================== */
+
+main a { color: var(--blotter-tool); text-decoration: underline; text-underline-offset: 3px; }
+main a:hover { color: var(--blotter-ink); }
+
+main {
+  background: var(--blotter);
+  color: var(--blotter-ink);
+  color-scheme: light;
+  --paper: var(--blotter);
+  --surface: var(--blotter-card);
+  --surface-bar: #ebeef2;
+  --ink: var(--blotter-ink);
+  --ink-2: var(--blotter-ink-2);
+  --slate: var(--blotter-slate);
+  --slate-dim: var(--blotter-dim);
+  --rule: var(--blotter-rule);
+  --rule-soft: var(--blotter-rule-soft);
+  --moon: var(--blotter-moon);
+  --tool: var(--blotter-tool);
+  --memory: var(--blotter-memory);
+  --write: var(--blotter-write);
+  --alarm: var(--blotter-alarm);
+  border-top: 1px solid rgba(20, 22, 28, 0.08);
+  box-shadow: inset 0 24px 48px -40px rgba(5, 5, 7, 0.35);
+}
+
+main .surface {
+  background: var(--blotter-card);
+  border: 1px solid var(--blotter-rule);
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.65) inset,
+    0 10px 28px -22px rgba(20, 22, 28, 0.35);
+}
+
+main .war {
+  background: var(--blotter-card);
+  border: 1px solid var(--blotter-rule);
+  border-radius: 6px;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 24px 60px -36px rgba(20, 22, 28, 0.28);
+}
+
+main .war__chat { border-right-color: var(--blotter-rule); }
+main .war__top,
+main .war__composer,
+main .war__rail,
+main .war__graph {
+  background: #eef0f4;
+}
+main .war__status.is-live {
+  color: var(--blotter-moon);
+  background: rgba(138, 104, 24, 0.1);
+}
+main .war__status.is-done {
+  color: var(--blotter-write);
+  background: rgba(26, 107, 72, 0.1);
+}
+main .war__step.is-on {
+  color: var(--blotter-moon);
+  border-color: rgba(138, 104, 24, 0.35);
+  background: rgba(138, 104, 24, 0.08);
+  box-shadow: none;
+}
+main .war__step.is-done {
+  color: var(--blotter-write);
+  border-color: rgba(26, 107, 72, 0.3);
+  background: rgba(26, 107, 72, 0.08);
+}
+main .msg__tool {
+  border-left-color: var(--blotter-rule);
+  background: transparent;
+}
+main .dash__zero { text-shadow: none; }
+main .night--learned {
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.7) inset,
+    0 0 0 1px rgba(92, 64, 143, 0.22),
+    0 18px 40px -28px rgba(92, 64, 143, 0.25);
+}
+main .night__val.learned { text-shadow: none; }
+main .dh__prose code {
+  background: rgba(20, 22, 28, 0.06);
+}
+main .dh__tags span {
+  border-radius: 4px;
+  background: rgba(92, 64, 143, 0.1);
+}
+main .dh__tags .ok { background: rgba(26, 107, 72, 0.1); }
+main .dash__badge { border-radius: 4px; }
+
+/* Stamp chips — small square journalistic markers */
+.stamp {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 5px 8px;
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  color: var(--slate);
+  background: transparent;
+}
+main .stamp { border-color: var(--blotter-rule); color: var(--blotter-slate); }
+.stamp--moon { color: var(--moon); border-color: color-mix(in srgb, var(--moon) 40%, transparent); }
+.stamp--alarm { color: var(--alarm); border-color: color-mix(in srgb, var(--alarm) 40%, transparent); }
+
+/* Seam label between night and desk */
+.desk-seam {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 18px var(--gutter) 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--blotter-dim);
+  background: var(--blotter);
+}
+.desk-seam::before,
+.desk-seam::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  max-width: 120px;
+  background: var(--blotter-rule);
+}
+
+/* Nav over blotter */
+.nav.is-desk .nav__bar {
+  background: color-mix(in srgb, var(--blotter-card) 88%, transparent);
+  border-color: var(--blotter-rule);
+  box-shadow: 0 10px 30px -20px rgba(20, 22, 28, 0.35);
+  color: var(--blotter-ink);
+}
+.nav.is-desk .wordmark,
+.nav.is-desk .nav__link { color: var(--blotter-ink); }
+.nav.is-desk .nav__link { opacity: 0.62; }
+.nav.is-desk .nav__link:hover { opacity: 1; }
+.nav.is-desk .btn--ghost {
+  color: var(--blotter-ink);
+  border-color: var(--blotter-rule);
+}
+.nav.is-desk .btn--solid {
+  background: var(--blotter-ink);
+  color: var(--blotter-card);
+}
+.nav.is-desk .nav__rule { background: var(--blotter-rule); }
+
+.foot {
+  background: var(--night);
+  color: rgba(244, 245, 247, 0.55);
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.giant {
+  font-family: "Newsreader", "Figtree", Georgia, serif;
+  font-weight: 500;
+  font-optical-sizing: auto;
+}
+

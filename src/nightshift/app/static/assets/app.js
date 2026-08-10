@@ -480,7 +480,7 @@ function nsEvidenceSVG(nodes) {
     if (i < nodes.length - 1) {
       const x1 = x + w + 6, x2 = x + w + GAP - 8;
       parts.push(`<line x1="${x1}" y1="${midY}" x2="${x2}" y2="${midY}"
-        stroke="rgba(255,255,255,0.25)" stroke-width="1" marker-end="url(#ns-arrow)"/>`);
+        stroke="rgba(20,22,28,0.28)" stroke-width="1" marker-end="url(#ns-arrow)"/>`);
     }
     x += w + GAP;
   });
@@ -488,7 +488,7 @@ function nsEvidenceSVG(nodes) {
     role="img" aria-label="Lineage path" style="display:block">
     <defs><marker id="ns-arrow" viewBox="0 0 8 8" refX="7" refY="4"
       markerWidth="7" markerHeight="7" orient="auto">
-      <path d="M0 0 L8 4 L0 8 z" fill="rgba(255,255,255,0.35)"/></marker></defs>
+      <path d="M0 0 L8 4 L0 8 z" fill="rgba(20,22,28,0.4)"/></marker></defs>
     ${parts.join("")}</svg>`;
 }
 

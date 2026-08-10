@@ -18,12 +18,16 @@
   /* ------------------------------------------------ nav lift */
 
   var nav = document.getElementById("nav");
+  var hero = document.getElementById("top");
   if (nav) {
     var onScroll = function () {
       nav.classList.toggle("is-lifted", window.scrollY > 12);
+      var deskAt = hero ? hero.offsetHeight - 48 : 420;
+      nav.classList.toggle("is-desk", window.scrollY > deskAt);
     };
     onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll, { passive: true });
   }
 
   /* ------------------------------------------------ deterministic graph */

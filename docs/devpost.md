@@ -6,13 +6,17 @@
 
 **Links to paste**
 - Repo: https://github.com/Mossab28/nightshift
-- Live product: https://nightshift.51-91-121-153.sslip.io  
+- Live product (landing): https://nightshift.51-91-121-153.sslip.io
+- Connected war room `/app`: https://nightshift.51-91-121-153.sslip.io/app  
   (demo: mossab.mirandeney1@gmail.com / nightshift-demo-2026)
-- Break it yourself: https://try.nightshift.51-91-121-153.sslip.io
+- Break it yourself (`try.*` judge sandbox): https://try.nightshift.51-91-121-153.sslip.io
+- Judge route: https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
 - Upstream skill PR: https://github.com/datahub-project/datahub-skills/pull/126
 - Upstream issue: https://github.com/datahub-project/datahub/issues/19028
-- Demo fix PR: https://github.com/Mossab28/nightshift-dbt-demo/pull/3
+- Demo fix PR (agent-opened dbt draft): https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 - Video: (colle le lien dès qu'elle est en ligne)
+
+**Surface map for the form:** landing = pitch · try.* = one-click proof · /app = connected product.
 
 ---
 

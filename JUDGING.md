@@ -4,9 +4,13 @@
 **Live app:** https://nightshift.51-91-121-153.sslip.io  
 **One-click demo:** https://try.nightshift.51-91-121-153.sslip.io  
 **Repo:** https://github.com/Mossab28/nightshift  
-**Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`
+**Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`  
+**Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md)  
+**dbt fix PR (real work artifact):** https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
-Two surfaces, one product:
+**One-line differentiator:** Nightshift is the on-call loop that writes the night into DataHub so the next break is a lookup — measured 14→5 tool calls, 2.2→1.1 min.
+
+Two surfaces, one product (plus a landing pitch):
 
 | Surface | What it is | What it is not |
 |---|---|---|
