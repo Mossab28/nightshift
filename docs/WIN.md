@@ -81,7 +81,7 @@ official bar is video+repo+README; live demo is the abuse layer on top.
 - [ ] `python scripts/verify_judging_evidence.py` → OK
 - [ ] try.* Break → Wake completes; write-back rail lights
 - [ ] Landing loads; desk blotter readable
-- [ ] `/app` login works with demo account
+- [ ] `/app#/live` opens publicly (no login)
 - [ ] JUDGING.md linked from README + landing CTA
 - [ ] Devpost fields pasted from `docs/devpost.md`
 - [ ] Video link slotted into JUDGING + Devpost (founder) - **non-negotiable bar**

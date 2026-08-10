@@ -9,7 +9,7 @@
 **Links**
 - Repo: https://github.com/Mossab28/nightshift
 - Landing: https://nightshift.51-91-121-153.sslip.io
-- War room `/app`: https://nightshift.51-91-121-153.sslip.io/app (demo: `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`)
+- War room `/app` (public): https://nightshift.51-91-121-153.sslip.io/app#/live
 - Judge sandbox `try.*`: https://try.nightshift.51-91-121-153.sslip.io
 - Judge route: https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
 - Upstream skill PR: https://github.com/datahub-project/datahub-skills/pull/126

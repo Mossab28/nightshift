@@ -1,7 +1,7 @@
-# Prompteur démo (~2:30) — version exhaustive
+# Prompteur démo (~2:30) - version exhaustive
 
 Tout se passe dans le produit réel. URL : https://nightshift.51-91-121-153.sslip.io
-Plus de login — tu arrives direct dedans. Zoom navigateur ~110 %.
+Pas de login: Open the war room, puis Live. Zoom navigateur ~110 %.
 
 **Avant de filmer** : ouvre la page Live ; si le bandeau ne dit pas HEALTHY,
 clique « Restore » et attends 3 secondes. C'est tout.

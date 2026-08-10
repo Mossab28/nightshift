@@ -76,7 +76,7 @@ After one try.* Break → Wake:
 | Field | Paste |
 |---|---|
 | Repo | https://github.com/Mossab28/nightshift |
-| Demo login | `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026` |
+| War room | https://nightshift.51-91-121-153.sslip.io/app#/live (public, no login) |
 | Judge route | https://github.com/Mossab28/nightshift/blob/main/JUDGING.md |
 | Upstream skill | https://github.com/datahub-project/datahub-skills/pull/126 |
 | Packaging issue | https://github.com/datahub-project/datahub/issues/19028 |
@@ -84,8 +84,8 @@ After one try.* Break → Wake:
 Notes / how to run (short):
 
 ```
-Judge path (60s): open try.* → Break the pipeline → Wake the night shift → watch write-back rail.
-Connected product: /app with demo login above.
+Judge path (60s): open /app#/live → Break → Wake → Restore (public, no login).
+Sandbox alt: try.* same loop.
 Local: make demo (DataHub quickstart + datapack + break + shift).
 Evidence: python scripts/verify_judging_evidence.py
 ```
@@ -116,7 +116,7 @@ Happy to take feedback.
 - [ ] Built with tags added
 - [ ] Try it out links added
 - [ ] Screens 1-5 attached
-- [ ] Additional info / login notes
+- [ ] Additional info (public /app#/live)
 - [ ] Slack posted once
 - [ ] Video URL when ready
 - [ ] No overclaim: presence guard is not a value-level test
