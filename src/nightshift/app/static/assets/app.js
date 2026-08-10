@@ -83,8 +83,8 @@ function shell(active, contentNode, opts = {}) {
  const root = el(`
  <div class="shell-root${desk ? " shell-root--desk" : ""}">
  <header class="topbar">
- <a href="#/" class="wordmark"><span class="moon">&#9789;</span>Nightshift</a>
- ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<span class="ws"></span>`}
+ <a href="/" class="wordmark"><span class="moon">&#9789;</span>Nightshift</a>
+ ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<a class="ws" href="/">Home</a>`}
  <span class="spacer"></span>
  ${desk ? "" : `<button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>`}
  <span class="who"></span>
@@ -98,9 +98,7 @@ function shell(active, contentNode, opts = {}) {
  <main class="content${opts.wide || desk ? " content--wide" : ""}"></main>
  </div>
  </div>`);
- const ws = state.workspaces.find((w) => w.id === state.wsId);
- const wsEl = root.querySelector(".ws");
- if (wsEl) wsEl.textContent = ws ? ws.name : "";
+ // The topbar slot is a Home link back to the landing, not the workspace name.
  root.querySelector(".who").textContent = state.email || "";
  root.querySelector("#logout").onclick = async () => {
  await api("/auth/logout", { method: "POST" }).catch(() => {});
