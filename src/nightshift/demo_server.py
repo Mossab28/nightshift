@@ -106,11 +106,22 @@ def do_break() -> JSONResponse:
 
 @app.post("/api/reset")
 def do_reset() -> JSONResponse:
+    with STATE.lock:
+        if STATE.shift_running:
+            return JSONResponse(
+                {"error": "shift is still running -- wait for it to finish"},
+                409,
+            )
     restore_pipeline(
         _graph(), upstream_urn=UPSTREAM, old_column=OLD_COLUMN, new_column=NEW_COLUMN
     )
     with STATE.lock:
+        # Shared sandbox: clear the live chat for every viewer. DataHub memories
+        # stay in the graph on purpose (that is the product).
         STATE.planted = None
+        STATE.shift_events = []
+        STATE.shift_conclusion = ""
+        STATE.shift_started_at = None
     return JSONResponse({"restored": True, "note": "The graph keeps its memories."})
 
 
