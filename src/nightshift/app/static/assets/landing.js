@@ -380,6 +380,33 @@
 
  /* ------------------------------------------------- reveal on scroll */
 
+  /* Smooth in-page nav (native smooth + offset for floating nav) */
+  document.querySelectorAll('a[href^="#"]').forEach(function (a) {
+    a.addEventListener("click", function (ev) {
+      var id = a.getAttribute("href");
+      if (!id || id === "#") return;
+      var target = document.querySelector(id);
+      if (!target) return;
+      ev.preventDefault();
+      var top = target.getBoundingClientRect().top + window.scrollY - 72;
+      window.scrollTo({ top: top, behavior: reduced ? "auto" : "smooth" });
+      if (history.pushState) history.pushState(null, "", id);
+    });
+  });
+
+  /* Mark section children for staggered entrance */
+  document.querySelectorAll(".section .rv").forEach(function (rv) {
+    var kids = rv.querySelectorAll(":scope > .eyebrow, :scope > .pair, :scope > .lede, :scope > .giant, :scope > .surface, :scope > .dash, :scope > .slack, :scope > .watch, :scope > .dh, :scope > .nights, :scope > p, :scope > h2");
+    if (!kids.length) {
+      kids = rv.children;
+    }
+    Array.prototype.forEach.call(kids, function (kid, i) {
+      if (kid.classList.contains("war")) return;
+      kid.classList.add("rv-item");
+      kid.style.setProperty("--i", String(i));
+    });
+  });
+
   var io = new IntersectionObserver(function (entries) {
     entries.forEach(function (en) {
       if (!en.isIntersecting) return;
@@ -387,16 +414,17 @@
       io.unobserve(en.target);
       if (en.target.querySelector("[data-count]")) runCounters(en.target);
     });
-  }, { threshold: 0.08, rootMargin: "0px 0px -8% 0px" });
+  }, { threshold: 0.12, rootMargin: "0px 0px -12% 0px" });
   document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
     io.observe(el);
   });
-  /* Never leave content invisible if IO misses (tall panels, slow paint). */
+  /* Fail-safe only for near-viewport panels (keep scroll drama alive). */
   setTimeout(function () {
-    document.querySelectorAll(".rv, .nights, .war").forEach(function (el) {
-      el.classList.add("on");
+    document.querySelectorAll(".rv:not(.on), .nights:not(.on), .war:not(.on)").forEach(function (el) {
+      var r = el.getBoundingClientRect();
+      if (r.top < window.innerHeight * 1.15) el.classList.add("on");
     });
-  }, 1800);
+  }, 2800);
 
   /* Dawn ridges open as the desk comes into view */
   var dawn = document.querySelector(".dawn");

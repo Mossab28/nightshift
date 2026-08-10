@@ -241,23 +241,31 @@
  </div>
  </section>
 
- <section class="section section--close" id="cta">
- <div class="shell">
- <div class="rv band-head band-head--center">
- <p class="eyebrow eyebrow--mono eyebrow--center">&gt; put the night on shift</p>
- <h2 class="display display--sm display--center"><span class="moon" aria-hidden="true">☽</span> Break it. Watch it learn.</h2>
- <div class="hero__actions hero__actions--center">
- <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">try.* · break it live</a>
- <a class="btn btn--ghost" href="/app">/app · open war room</a>
- </div>
- <p class="fineprint fineprint--center">
- <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md · 60s</a>
- · <a href="https://github.com/datahub-project/datahub-skills/pull/126">Upstream PR #126</a>
- · <a href="https://github.com/Mossab28/nightshift">GitHub</a>
- </p>
- </div>
- </div>
- </section>
+  <section class="section section--close section--night" id="cta">
+    <div class="cta-dawn" aria-hidden="true">
+      <svg class="dawn__svg" viewBox="0 0 1440 100" preserveAspectRatio="none">
+        <path class="cta-dawn__fill" d="M0,0 L0,55 C200,95 400,20 720,50 C1040,80 1240,15 1440,45 L1440,0 Z"/>
+      </svg>
+    </div>
+    <div class="shell">
+      <div class="cta-stage" id="cta-stage">
+        <p class="eyebrow eyebrow--mono eyebrow--center cta-item" style="--i:0">&gt; put the night on shift</p>
+        <h2 class="display display--sm display--center" id="cta-headline">
+          <span class="moon" aria-hidden="true">☽</span>
+          <span data-cta-split>Break it. Watch it learn.</span>
+        </h2>
+        <div class="hero__actions hero__actions--center cta-actions">
+          <a class="btn btn--solid" href="https://try.nightshift.51-91-121-153.sslip.io">try.* · break it live</a>
+          <a class="btn btn--ghost" href="/app">/app · open war room</a>
+        </div>
+        <p class="fineprint fineprint--center cta-item" style="--i:4">
+          <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md · 60s</a>
+          · <a href="https://github.com/datahub-project/datahub-skills/pull/126">Upstream PR #126</a>
+          · <a href="https://github.com/Mossab28/nightshift">GitHub</a>
+        </p>
+      </div>
+    </div>
+  </section>
 
 </main>
 
@@ -270,5 +278,6 @@
 
 <script src="/assets/landing.js"></script>
 <script type="module" src="/assets/hero-motion.js"></script>
+<!-- hero-motion also drives the closing CTA word/button entrance -->
 </body>
 </html>
