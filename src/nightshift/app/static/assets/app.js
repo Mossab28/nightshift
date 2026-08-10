@@ -78,38 +78,43 @@ function shell(active, contentNode, opts = {}) {
  ["#/memory", "Memory", "memory", "nav-memory"],
  ["#/settings", "Settings", "settings", "nav-settings"],
  ];
+ const desk = !!opts.desk;
  const root = el(`
- <div class="shell-root">
+ <div class="shell-root${desk ? " shell-root--desk" : ""}">
  <header class="topbar">
- <a href="#/" class="wordmark"><span class="moon">&#9789;</span>NIGHTSHIFT</a>
- <span class="ws"></span>
+ <a href="#/" class="wordmark"><span class="moon">&#9789;</span>Nightshift</a>
+ ${desk ? `<a class="topbar__back" href="#/shifts">← shifts</a>` : `<span class="ws"></span>`}
  <span class="spacer"></span>
- <button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>
+ ${desk ? "" : `<button class="btn-ghost" type="button" id="help-tour" title="Show the tour again">Tour</button>`}
  <span class="who"></span>
  <button class="btn-ghost" id="logout">Sign out</button>
  </header>
  <div class="frame">
- <nav class="sidenav">
+ ${desk ? "" : `<nav class="sidenav">
  ${nav.map(([h, t, k, tour]) =>
  `<a href="${h}" class="${k === active ? "active" : ""}" data-tour="${tour}">${t}</a>`).join("")}
- </nav>
- <main class="content${opts.wide ? " content--wide" : ""}"></main>
+ </nav>`}
+ <main class="content${opts.wide || desk ? " content--wide" : ""}"></main>
  </div>
  </div>`);
  const ws = state.workspaces.find((w) => w.id === state.wsId);
- root.querySelector(".ws").textContent = ws ? ws.name : "";
+ const wsEl = root.querySelector(".ws");
+ if (wsEl) wsEl.textContent = ws ? ws.name : "";
  root.querySelector(".who").textContent = state.email || "";
  root.querySelector("#logout").onclick = async () => {
  await api("/auth/logout", { method: "POST" }).catch(() => {});
  state.email = null;
  location.hash = "#/login";
  };
- root.querySelector("#help-tour").onclick = () => {
+ const help = root.querySelector("#help-tour");
+ if (help) {
+ help.onclick = () => {
  if (window.NightshiftTour) {
  NightshiftTour.reset();
  NightshiftTour.start(true);
  }
  };
+ }
  root.querySelector("main.content").append(contentNode);
  app.replaceChildren(root);
 }
@@ -133,8 +138,8 @@ function viewLogin() {
  const node = el(`
  <div class="login-wrap">
  <div class="plate login-card">
- <span class="wordmark"><span class="moon">&#9789;</span>NIGHTSHIFT</span>
- <p class="tagline">The agent that takes the night watch.</p>
+ <span class="wordmark"><span class="moon">&#9789;</span>Nightshift</span>
+ <p class="tagline">The on-call data team that gets smarter every night.</p>
  <div class="tabs">
  <button class="active" data-tab="login">Sign in</button>
  <button data-tab="register">Create account</button>
@@ -247,7 +252,7 @@ async function viewDashboard() {
  const node = el(`<div>
  <div class="page-head">
  <div class="grow">
- <h2 class="page-title">Dashboard</h2>
+ <h2 class="page-title">Night desk</h2>
  <p class="page-sub">While you sleep, the graph remembers.</p>
  </div>
  <button class="btn-primary" id="wake" data-tour="wake">Wake the night shift</button>
@@ -283,8 +288,8 @@ async function viewDashboard() {
  band.classList.toggle("on", !!ws.sentinel_enabled);
  band.querySelector(".state").textContent = ws.sentinel_enabled ? "Sentinel is on watch" : "Sentinel is off";
  band.querySelector(".note").textContent = ws.sentinel_enabled
- ? `checking ${ws.watches.length} dataset${ws.watches.length === 1 ? "" : "s"} every ${ws.sentinel_interval_s}s`
- : ws.gms_url ? "nobody is watching the graph tonight" : "connect your DataHub first";
+ ? `Checking ${ws.watches.length} dataset${ws.watches.length === 1 ? "" : "s"} every ${ws.sentinel_interval_s}s`
+ : ws.gms_url ? "Nobody is watching the graph tonight" : "Connect your DataHub first";
  }
 
  const grid = node.querySelector("#stats");
@@ -543,22 +548,19 @@ async function viewWarroom(shiftId) {
  const node = el(`<div class="wr" data-tour="warroom">
  <header class="wr__top">
  <div class="wr__top-left">
- <a class="wr__back" href="#/shifts">← shifts</a>
  <span class="wr__status" id="wr-status">idle</span>
  <b id="wr-title">Night desk</b>
  </div>
- <div class="wr__steps" id="wr-steps">
- <span class="wr__step" data-step="recall">Recall</span>
- <span class="wr__step" data-step="lineage">Lineage</span>
- <span class="wr__step" data-step="diagnose">Diagnose</span>
- <span class="wr__step" data-step="remember">Remember</span>
- <span class="wr__step" data-step="fix">Fix PR</span>
- </div>
- <div class="wr__top-right mono" id="wr-meta"></div>
+ <div class="wr__top-right" id="wr-meta"></div>
  </header>
  <div class="wr__grid">
  <section class="wr__chat">
- <div class="wr__stream" id="wr-stream"></div>
+ <div class="wr__stream" id="wr-stream">
+ <div class="wr-stream__pin" id="wr-pin" aria-hidden="true"></div>
+ </div>
+ <div class="wr__composer">
+ <p class="wr__hint" id="wr-hint">Same night desk as the live demo. Watch the chat and the DataHub checklist.</p>
+ </div>
  <div class="plate evidence" id="evidence" hidden>
  <div class="head">Lineage path</div>
  <div class="evidence-scroll"></div>
@@ -573,36 +575,37 @@ async function viewWarroom(shiftId) {
  <li data-aspect="guard"><span>Presence guard</span><i>✓</i></li>
  <li data-aspect="pr"><span>Draft fix PR</span><i>✓</i></li>
  </ul>
- <p class="wr__rail-note">Same chat as try.*. When a row checks off, Nightshift wrote it into your graph.</p>
+ <p class="wr__rail-note">When a row checks off, Nightshift wrote it into your graph.</p>
  </aside>
  </div>
  </div>`);
- shell("shifts", node, { wide: true });
+ shell("shifts", node, { wide: true, desk: true });
 
  let lastSig = "";
  let evidenceTried = false;
+ let stickBottom = true;
  const lit = new Set();
+ const stream = node.querySelector("#wr-stream");
+
+ stream.addEventListener("scroll", () => {
+ const gap = stream.scrollHeight - stream.scrollTop - stream.clientHeight;
+ stickBottom = gap < 96;
+ }, { passive: true });
+
+ const scrollChat = (force) => {
+ if (!force && !stickBottom) return;
+ requestAnimationFrame(() => {
+ const p = node.querySelector("#wr-pin");
+ if (p) p.scrollIntoView({ block: "end", behavior: "smooth" });
+ else stream.scrollTop = stream.scrollHeight;
+ });
+ };
 
  const lightAspect = (key) => {
  if (!key || lit.has(key)) return;
  lit.add(key);
  const li = node.querySelector(`[data-aspect="${key}"]`);
  if (li) li.classList.add("is-on");
- };
-
- const setStep = (name) => {
- if (!name) return;
- let hit = false;
- node.querySelectorAll(".wr__step").forEach((el) => {
- const id = el.getAttribute("data-step");
- el.classList.remove("is-on");
- if (id === name) {
- el.classList.add("is-on", "is-done");
- hit = true;
- } else if (!hit) {
- el.classList.add("is-done");
- }
- });
  };
 
  const maybeEvidence = async (s) => {
@@ -615,6 +618,7 @@ async function viewWarroom(shiftId) {
  const box = node.querySelector("#evidence");
  box.querySelector(".evidence-scroll").innerHTML = nsEvidenceSVG(lineage);
  box.hidden = false;
+ scrollChat(true);
  };
 
  const render = (s) => {
@@ -628,12 +632,17 @@ async function viewWarroom(shiftId) {
 
  const events = s.events || [];
  const running = s.status === "running";
+ node.querySelector("#wr-hint").textContent = running
+ ? "Nightshift is working. Watch the chat and the DataHub checklist."
+ : s.conclusion
+ ? "Shift over. Open DataHub if you want the write-back proof."
+ : "Waiting for the night shift to start writing.";
+
  const sig = events.length + "|" + (s.conclusion || "") + "|" + s.status;
  if (sig === lastSig) return running;
  lastSig = sig;
 
  lit.clear();
- node.querySelectorAll(".wr__step").forEach((el) => el.classList.remove("is-on", "is-done"));
  node.querySelectorAll(".wr__aspects li").forEach((li) => li.classList.remove("is-on"));
 
  const thoughts = events.filter((ev) => classify(ev) === "thought");
@@ -651,8 +660,6 @@ async function viewWarroom(shiftId) {
  const stepLines = [];
  tools.forEach((ev) => {
  const label = ev.label || "";
- const step = wrStepFor(label, ev.kind);
- if (step) setStep(step);
  const aspect = wrAspectKey(label);
  if (aspect) lightAspect(aspect);
  const plain = wrPlainTool(label);
@@ -673,13 +680,11 @@ async function viewWarroom(shiftId) {
  thoughts.forEach((ev, i) => {
  const t = (ev.detail || "").trim();
  if (!t) return;
- if (t.length < 40 && i < thoughts.length - 1) return;
- setStep("diagnose");
+ if (t.length < 48 && i < thoughts.length - 1) return;
  parts.push(wrBubble("assistant", "Nightshift", esc(t)));
  });
 
  if (!running && s.conclusion) {
- setStep("fix");
  ["incident", "memory", "guard", "pr"].forEach(lightAspect);
  const failed = s.status === "failed";
  const kicker = failed ? "Shift failed" : "Morning report";
@@ -690,10 +695,11 @@ async function viewWarroom(shiftId) {
  );
  }
 
- const stream = node.querySelector("#wr-stream");
- stream.innerHTML = parts.join("") ||
- `<div class="empty"><p>Waiting for the night shift to start writing.</p></div>`;
- stream.scrollTop = stream.scrollHeight;
+ stream.innerHTML = (parts.join("") ||
+ `<div class="empty"><p>Waiting for the night shift to start writing.</p></div>`) +
+ `<div class="wr-stream__pin" id="wr-pin" aria-hidden="true"></div>`;
+ stickBottom = true;
+ scrollChat(true);
 
  if (!running) maybeEvidence(s);
  return running;
@@ -707,11 +713,10 @@ async function viewWarroom(shiftId) {
  try {
  if (!render(await load())) stopPolling();
  } catch { stopPolling(); }
- }, 1500);
+ }, 800);
  }
  } catch (ex) {
- node.querySelector("#wr-stream").innerHTML =
- `<div class="empty"><p>${esc(ex.message)}</p></div>`;
+ stream.innerHTML = `<div class="empty"><p>${esc(ex.message)}</p></div>`;
  }
 }
 
