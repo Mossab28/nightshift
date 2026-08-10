@@ -5,7 +5,7 @@
 **One-click demo:** https://try.nightshift.51-91-121-153.sslip.io 
 **Repo:** https://github.com/Mossab28/nightshift 
 **Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026` 
-**Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md) 
+**Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md) · **Submit pack:** [docs/SUBMIT.md](docs/SUBMIT.md) 
 **dbt fix PR (real work artifact):** https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
 **One-line differentiator:** Not another pre-merge schema bot - Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup (14→5 calls, 2.2→1.1 min). Hybrid welcome (Sentinel/guards deterministic + Claude investigates).
