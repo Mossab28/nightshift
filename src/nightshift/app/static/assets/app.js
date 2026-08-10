@@ -74,6 +74,7 @@ function classify(ev) {
 function shell(active, contentNode, opts = {}) {
  const nav = [
  ["#/", "Dashboard", "dashboard", "nav-dashboard"],
+ ["#/live", "Live", "live", "nav-live"],
  ["#/shifts", "Shifts", "shifts", "nav-shifts"],
  ["#/memory", "Memory", "memory", "nav-memory"],
  ["#/settings", "Settings", "settings", "nav-settings"],
@@ -175,7 +176,9 @@ function viewLogin() {
  body: { email: form.email.value.trim(), password: form.password.value },
  });
  state.email = null; // force /auth/me refresh
- location.hash = "#/";
+ const next = sessionStorage.getItem("ns_next") || "#/";
+ sessionStorage.removeItem("ns_next");
+ location.hash = next;
  } catch (ex) {
  err.textContent = ex.message;
  } finally {
@@ -255,7 +258,7 @@ async function viewDashboard() {
  <h2 class="page-title">Night desk</h2>
  <p class="page-sub">While you sleep, the graph remembers.</p>
  </div>
- <button class="btn-primary" id="wake" data-tour="wake">Wake the night shift</button>
+ <a class="btn-primary" href="#/live" data-tour="wake">Break / Wake live</a>
  </div>
  <div class="plate sentinel-band" id="sentinel" data-tour="sentinel">
  <span class="dot"></span>
@@ -273,7 +276,6 @@ async function viewDashboard() {
  <div class="plate rowlist" id="recent"></div>
  </section>
  </div>`);
- node.querySelector("#wake").onclick = openWakeModal;
  shell("dashboard", node);
  if (window.NightshiftTour) setTimeout(() => NightshiftTour.start(false), 350);
 
@@ -336,6 +338,128 @@ async function viewDashboard() {
  recent.innerHTML = shifts && shifts.length
  ? shifts.slice(0, 5).map(shiftRow).join("")
  : EMPTY_SHIFTS;
+}
+
+/* ----------------------------------------------------------- live pipeline */
+
+async function viewLive() {
+ const node = el(`<div class="live" data-tour="live">
+ <div class="page-head">
+ <div class="grow">
+ <h2 class="page-title">Live pipeline</h2>
+ <p class="page-sub">Real break on your DataHub. Wake the night shift. Restore when you are done. No mocks.</p>
+ </div>
+ </div>
+ <div class="live__status plate" id="live-status">
+ <span class="pill" id="live-pill">idle</span>
+ <span id="live-text">Connect DataHub in Settings, then break a real pipeline.</span>
+ </div>
+ <div class="live__actions">
+ <button type="button" id="live-break" class="btn-break">Break the pipeline</button>
+ <button type="button" id="live-wake" class="btn-primary" disabled>Wake the night shift</button>
+ <button type="button" id="live-restore" class="btn-ghost">Restore</button>
+ </div>
+ <p class="live__hint" id="live-hint">Break rewrites a real upstream schema on your graph. Wake runs the real agent. Restore puts the column back; memories stay.</p>
+ </div>`);
+ shell("live", node);
+
+ const pill = node.querySelector("#live-pill");
+ const text = node.querySelector("#live-text");
+ const hint = node.querySelector("#live-hint");
+ const btnBreak = node.querySelector("#live-break");
+ const btnWake = node.querySelector("#live-wake");
+ const btnRestore = node.querySelector("#live-restore");
+
+ const paint = (s) => {
+ if (!s.connected) {
+ pill.className = "pill";
+ pill.textContent = "offline";
+ text.textContent = "No DataHub connection. Open Settings and paste your GMS URL + token.";
+ btnBreak.disabled = true;
+ btnWake.disabled = true;
+ btnRestore.disabled = true;
+ return;
+ }
+ if (s.shift_running) {
+ pill.className = "pill is-live";
+ pill.textContent = "running";
+ text.textContent = "Night shift is working. Open Shifts to watch the desk.";
+ btnBreak.disabled = true;
+ btnWake.disabled = true;
+ btnRestore.disabled = true;
+ return;
+ }
+ if (s.planted) {
+ pill.className = "pill is-broken";
+ pill.textContent = "broken";
+ text.textContent = "`" + s.planted.old_column + "` is now `" + s.planted.new_column +
+ "` upstream. Downstream still selects the old name.";
+ btnBreak.disabled = true;
+ btnWake.disabled = false;
+ btnRestore.disabled = false;
+ return;
+ }
+ pill.className = "pill";
+ pill.textContent = "healthy";
+ text.textContent = "Pipeline is healthy on your DataHub. Break it when you are ready.";
+ btnBreak.disabled = false;
+ btnWake.disabled = true;
+ btnRestore.disabled = false;
+ };
+
+ const refresh = async () => {
+ try {
+ paint(await api(`/workspaces/${state.wsId}/live`));
+ } catch (ex) {
+ text.textContent = ex.message;
+ }
+ };
+
+ btnBreak.onclick = async () => {
+ btnBreak.disabled = true;
+ btnBreak.textContent = "Breaking…";
+ hint.textContent = "Planting a silent upstream rename on your DataHub…";
+ try {
+ await api(`/workspaces/${state.wsId}/live/break`, { method: "POST", body: {} });
+ } catch (ex) {
+ hint.textContent = ex.message;
+ } finally {
+ btnBreak.textContent = "Break the pipeline";
+ await refresh();
+ }
+ };
+
+ btnWake.onclick = async () => {
+ btnWake.disabled = true;
+ btnWake.textContent = "Waking…";
+ hint.textContent = "Starting a real night shift on your graph…";
+ try {
+ const r = await api(`/workspaces/${state.wsId}/live/wake`, { method: "POST", body: {} });
+ location.hash = "#/shifts/" + r.shift_id;
+ return;
+ } catch (ex) {
+ hint.textContent = ex.message;
+ btnWake.textContent = "Wake the night shift";
+ await refresh();
+ }
+ };
+
+ btnRestore.onclick = async () => {
+ btnRestore.disabled = true;
+ btnRestore.textContent = "Restoring…";
+ try {
+ await api(`/workspaces/${state.wsId}/live/restore`, { method: "POST", body: {} });
+ hint.textContent = "Schema restored. Memories stay in the graph.";
+ } catch (ex) {
+ hint.textContent = ex.message;
+ } finally {
+ btnRestore.textContent = "Restore";
+ await refresh();
+ }
+ };
+
+ await refresh();
+ state.pollTimer = setInterval(refresh, 2000);
 }
 
 /* ----------------------------------------------------------------- shifts */
@@ -942,9 +1066,16 @@ async function route() {
  const hash = location.hash || "#/";
  if (hash === "#/login") { viewLogin(); return; }
  const ok = await ensureSession();
- if (!ok) { location.hash = "#/login"; return; }
+ if (!ok) {
+ if (hash && hash !== "#/" && hash !== "#/login") {
+ sessionStorage.setItem("ns_next", hash);
+ }
+ location.hash = "#/login";
+ return;
+ }
  const m = hash.match(/^#\/shifts\/(.+)$/);
  if (m) return viewWarroom(m[1]);
+ if (hash === "#/live") return viewLive();
  if (hash === "#/shifts") return viewShifts();
  if (hash === "#/memory") return viewMemory();
  if (hash === "#/settings") return viewSettings();
