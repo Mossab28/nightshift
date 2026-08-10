@@ -53,6 +53,9 @@ def recall_incident_memory(dataset_urn: str) -> str:
                 "note": "No prior Nightshift memory on this asset. Investigate from lineage.",
             }
         )
+    # A graph that has seen many nights accumulates a big memory; the agent
+    # only needs the freshest conclusions plus the count.
+    recent = postmortems[-3:]
     latest = postmortems[-1]
     verification: list[str] = []
     if latest.upstream_urn and latest.changed_field:
@@ -70,7 +73,7 @@ def recall_incident_memory(dataset_urn: str) -> str:
         {
             "dataset_urn": dataset_urn,
             "known_incidents": len(postmortems),
-            "postmortems": [p.__dict__ for p in postmortems],
+            "postmortems": [p.__dict__ for p in recent],
             "note": (
                 "This asset has been broken before. Verify the remembered root "
                 "cause with the reads below -- at most two -- then move straight "
