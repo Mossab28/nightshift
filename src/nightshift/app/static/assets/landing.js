@@ -466,7 +466,7 @@
  }
 })();
 
-/* War room - Claude-style shift chat that plays the real night. */
+/* War room - agent desk transcript that plays the real night. */
 (function () {
  var root = document.getElementById("war");
  var stream = document.getElementById("war-stream");

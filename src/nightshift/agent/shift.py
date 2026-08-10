@@ -1,6 +1,6 @@
 """One shift: the pager goes off, an agent works the incident, a report exists.
 
-The agent is a Claude Code session wired to two MCP servers at once:
+The agent is a Claude Agent SDK session wired to two MCP servers at once:
 
 * the official DataHub server, for reading the graph -- search, schemas,
   lineage, the SQL of transformations;
