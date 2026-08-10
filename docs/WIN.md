@@ -1,24 +1,63 @@
 # Theorycraft: how Nightshift actually wins
 
-Deadline pressure. No video work here — founder owns that. Everything else is
-scoreboard pressure on Devpost judges who are tired and comparing tabs.
+Deadline pressure. Founder owns the video. Everything else is scoreboard
+pressure on Devpost judges who are tired and comparing tabs.
+
+## Official rulings (Slack, locked)
+
+From Lakshay Nasa (DataHub) in `#agent-hackathon`:
+
+1. **Hybrid is welcome.** No rule that core decisions must be 100% LLM.
+   Deterministic lineage/policy + LLM reasoning/explanations is “what most
+   production agents look like.” Judging cares about DataHub context use,
+   execution quality, real-world usefulness.
+2. **OSS DataHub required.** Cloud-only does not qualify. Small VM /
+   Codespaces running OSS counts.
+3. **Section 4 bar:** video + repo + README is enough. Hosted backend is
+   *not* required. Artifacts help. (Many teams cannot even start Docker
+   MySQL right now — that is our live-demo edge, not a free pass to skip
+   the video.)
+
+Nightshift already matches the preferred architecture: Sentinel /
+`immunize_graph` / presence guards are deterministic; Claude does the
+investigation and prose. Say that out loud in Devpost.
 
 ## Honest odds
 
-There is no 99%. ForgetOps already proved submission-quality can beat a
-stronger product story. We win only if **product story + live proof +
-judge route + OSS** all hit in under three minutes of judge attention.
+There is no 99%. Three serious packaging threats now:
+
+| Competitor | Lane | How they score |
+|---|---|---|
+| **ForgetOps** | Privacy / DSR ops | JUDGING.md, approval gates, skills PR volume |
+| **Semantic Guardian** | Pre-merge semantic PR review | Many PRs, eval benchmark, contracts, upstream #18746 |
+| **Antigen** | Prompt-injection on metadata | 30s proof, measured 12/12, deterministic, upstream MCP issues |
+| **PR Guardian** | Same cluster as Semantic Guardian | PR warnings + catalog write-back |
+
+We do **not** win by becoming a fourth PR guardian. We win by owning the
+moment **after** the break shipped: pager → shift → write-back → memory
+compounds.
 
 ## What judges actually score
 
 | Criterion | Our edge | Fail mode |
 |---|---|---|
-| Use of DataHub | Write-back into real aspects, not chat | Looks like a chatbot with a catalog sidebar |
-| Technical execution | Agent SDK + dual MCP + Sentinel + immunize | Demo 502 / PR path broken |
-| Originality | Investigation → lookup, measured | “Another agent on DataHub” |
-| Real-world usefulness | 2:47am revenue=$0 story | Toy graph / fake writes |
-| Submission quality | JUDGING.md + try.* + evidence script | Missing video / vague claims |
+| Use of DataHub | Write-back into real aspects + memory recall | Looks like a chatbot with a catalog sidebar |
+| Technical execution | Hybrid: Sentinel/guards + Claude Agent SDK + dual MCP | Demo 502 / PR path broken |
+| Originality | Investigation → lookup, measured N1→N3 | “Another PR schema agent” |
+| Real-world usefulness | 2:47am revenue=$0 on showcase-ecommerce | Toy graph / fake writes |
+| Submission quality | Live try.* + JUDGING.md + evidence script | Missing video / vague claims |
 | OSS | skills#126 + issue#19028 + dbt fix PR | PR looks cosmetic |
+
+## Competitive wedge (say this)
+
+PR guardians catch the rename *in the PR* — when someone opened one.
+Nightshift exists for the nights nobody opened a PR review, or the review
+missed meaning, or prod drifted anyway. Then Finance pages at 9:07. The
+agent works the incident **and leaves the graph smarter**, so night three
+is a lookup (14→5 calls, 2.2→1.1 min). Measured, not vibes.
+
+Antigen / ForgetOps own other scare stories (injection, privacy). Same
+track possible; different job. Do not feature-chase them on deadline night.
 
 ## Surface map (do not confuse)
 
@@ -33,33 +72,30 @@ judge route + OSS** all hit in under three minutes of judge attention.
 
 **try.*** is the sandbox. **/app** is the workspace. Same agent. Different door.
 
+Live hosted try.* is a **massive** edge while Codespaces/Docker MySQL is
+on fire for other teams. Keep the watchdog up. Still ship the video —
+official bar is video+repo+README; live demo is the abuse layer on top.
+
 ## Abuse checklist (pre-submit)
 
 - [ ] `python scripts/verify_judging_evidence.py` → OK
 - [ ] try.* Break → Wake completes; write-back rail lights
-- [ ] Landing loads; hero Motion ok; desk blotter readable
+- [ ] Landing loads; desk blotter readable
 - [ ] `/app` login works with demo account
 - [ ] JUDGING.md linked from README + landing CTA
 - [ ] Devpost fields pasted from `docs/devpost.md`
-- [ ] Video link slotted into JUDGING + Devpost (founder)
+- [ ] Video link slotted into JUDGING + Devpost (founder) — **non-negotiable bar**
+- [ ] Devpost names hybrid + on-call (not “PR guardian”)
 - [ ] No overclaim: presence guard ≠ value-level test
-- [ ] Competitor intel pasted → adapt one differentiator sentence if needed
 
 ## Differentiator sentence (lock)
 
-> Nightshift is not a privacy ops agent and not a catalog chatbot. It is the
-> on-call loop that **writes the night into DataHub** so the next break is a
-> lookup — measured 14→5 tool calls, 2.2→1.1 min on the same incident.
+> Nightshift is not another pre-merge schema bot. It is the on-call loop
+> for the break that already shipped: Claude + deterministic guards on
+> DataHub, write-back into the graph, so the next night is a lookup —
+> measured 14→5 tool calls, 2.2→1.1 min.
 
-## If founder pastes competitor intel
+## If founder pastes more intel
 
-Update only:
-1. One sentence in Devpost “Inspiration” / differentiator
-2. JUDGING.md criterion table if they out-package a specific artifact
-3. Never chase their feature set on deadline night
-
-## Visual thesis
-
-**Night outside, blotter desk inside.** Cool paper (not warm cream AI default),
-stamp boxes, transcript identity. Looks like a night desk at 2:47am turning
-into morning paperwork — not another black SaaS glow.
+Update only the wedge sentence + this competitor table. Never chase their
+feature set after midnight.

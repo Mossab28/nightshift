@@ -8,7 +8,7 @@
 **Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md)  
 **dbt fix PR (real work artifact):** https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
-**One-line differentiator:** Nightshift is the on-call loop that writes the night into DataHub so the next break is a lookup — measured 14→5 tool calls, 2.2→1.1 min.
+**One-line differentiator:** Not another pre-merge schema bot — Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup (14→5 calls, 2.2→1.1 min). Hybrid welcome (Sentinel/guards deterministic + Claude investigates).
 
 Two surfaces, one product (plus a landing pitch):
 

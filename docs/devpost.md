@@ -28,14 +28,17 @@ Every data engineer knows that morning: blame the pipeline, grep the logs like
 your life depends on it, and find, hours later, a schema change nobody
 bothered to announce. It's never good when your boss notices first.
 
-What struck us is not that agents can investigate this. They can; anyone
-wiring an LLM to a catalog gets a decent investigator. It's that **every one
-of those agents forgets**. The next night, the same break, the same
-investigation, from zero. The understanding dies in a chat transcript nobody
-can query.
+Pre-merge schema bots catch renames when someone opens a PR. Plenty of scary
+bugs still ship: nobody reviewed the PR, the review missed meaning, or prod
+drifted overnight. What struck us is not that agents can investigate the
+pager — they can. It's that **every one of those agents forgets**. The next
+night, the same break, the same investigation, from zero. The understanding
+dies in a chat transcript nobody can query.
 
-This is not an LLM problem. It is a context problem, and the context platform
-was sitting right there.
+This is not an LLM-only problem. Nightshift is hybrid by design: deterministic
+Sentinel and presence guards for the precise bits, Claude for the
+investigation and the morning prose. The context platform was sitting right
+there — DataHub — so the night has to be written back into the graph.
 
 ## What it does
 
@@ -76,6 +79,10 @@ every run. Literally.
 
 ## How we built it
 
+- **Hybrid on purpose** (allowed and encouraged for this track): deterministic
+  Sentinel fingerprinting + column-presence guards + `immunize_graph` for the
+  precise bits; Claude Agent SDK for investigation, root-cause prose, and
+  draft fix PRs.
 - **Claude Agent SDK** driving two MCP servers per shift:
   - the official **DataHub MCP server** for the whole read surface (search,
     schemas, `get_lineage_paths_between` with transformation SQL);
