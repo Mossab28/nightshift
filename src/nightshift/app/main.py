@@ -39,12 +39,6 @@ def favicon() -> FileResponse:
     return FileResponse(STATIC / "assets" / "favicon.svg", media_type="image/svg+xml")
 
 
-@app.get("/demo")
-def demo() -> FileResponse:
-    """Public demo-video page for Devpost / judges."""
-    return FileResponse(STATIC / "demo.html")
-
-
 @app.get("/{page:path}")
 def spa(page: str) -> FileResponse:
     """Single-page app: /app and every other non-API path serve the shell."""

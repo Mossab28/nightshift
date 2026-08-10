@@ -1,19 +1,10 @@
 # SUBMIT NOW - Devpost paste pack
 
-Deadline: Aug 10. Video → drop on `/demo` when render finishes.
+Deadline: Aug 10. Video = YouTube (public, under 3 min).
 
-Live check: landing / app / try.* / **demo** = 200 · `verify_judging_evidence.py` = OK.
+Live check: landing / app / try.* = 200 · `verify_judging_evidence.py` = OK.
 
 Thumbnail file: `docs/assets/nightshift-devpost-thumbnail.png`
-
-**Demo video URL (après upload mp4):** https://nightshift.51-91-121-153.sslip.io/demo
-
-Upload when ready:
-
-```bash
-scp /path/to/nightshift-demo.mp4 intrudr-prod:~/nightshift/src/nightshift/app/static/assets/demo.mp4
-# pas besoin de restart: StaticFiles lit le fichier directement
-```
 
 ---
 
@@ -57,19 +48,14 @@ Agent Context Kit
 1. https://nightshift.51-91-121-153.sslip.io
 2. https://nightshift.51-91-121-153.sslip.io/app#/live
 3. https://try.nightshift.51-91-121-153.sslip.io
-4. https://nightshift.51-91-121-153.sslip.io/demo
-5. https://github.com/Mossab28/nightshift
-6. https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
-7. https://github.com/datahub-project/datahub-skills/pull/126
-8. https://github.com/Mossab28/nightshift-dbt-demo/pull/3
+4. https://github.com/Mossab28/nightshift
+5. https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
+6. https://github.com/datahub-project/datahub-skills/pull/126
+7. https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
 ### Video demo link
 
-```
-https://nightshift.51-91-121-153.sslip.io/demo
-```
-
-(Coller dès que `demo.mp4` est sur le serveur. La page existe déjà.)
+Colle ton URL YouTube publique (sous 3 min).
 
 ### Image gallery (toi)
 
@@ -154,7 +140,7 @@ Yes
 ### If your Project incorporates any pre-existing code… briefly describe
 
 ```
-Standard tools only: DataHub OSS + official DataHub MCP Server, Claude Agent SDK, Python/FastAPI, dbt, and the public DataHub showcase-ecommerce datapack used as the demo graph. No prior Nightshift product code existed before the Submission Period. Upstream skill work and the packaging issue were created during the hackathon.
+None. Nightshift was written 100% new during the Submission Period (July 6–Aug 10, 2026). We only used standard frameworks/libraries (DataHub OSS, official DataHub MCP Server, Claude Agent SDK, Python/FastAPI, dbt) and the public DataHub showcase-ecommerce datapack as the demo graph. No pre-existing Nightshift codebase.
 ```
 
 ### Would you like to be considered for the $50 Feedback Prize?
@@ -206,7 +192,6 @@ Not another pre-merge schema bot. Nightshift is the on-call loop for the break t
 
 60s judge route: https://github.com/Mossab28/nightshift/blob/main/JUDGING.md
 Live product (public): https://nightshift.51-91-121-153.sslip.io/app#/live
-Demo video: https://nightshift.51-91-121-153.sslip.io/demo
 Upstream OSS writes skill: https://github.com/datahub-project/datahub-skills/pull/126
 
 Happy to take feedback.
