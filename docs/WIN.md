@@ -8,15 +8,15 @@ pressure on Devpost judges who are tired and comparing tabs.
 From Lakshay Nasa (DataHub) in `#agent-hackathon`:
 
 1. **Hybrid is welcome.** No rule that core decisions must be 100% LLM.
-   Deterministic lineage/policy + LLM reasoning/explanations is “what most
-   production agents look like.” Judging cares about DataHub context use,
-   execution quality, real-world usefulness.
+ Deterministic lineage/policy + LLM reasoning/explanations is “what most
+ production agents look like.” Judging cares about DataHub context use,
+ execution quality, real-world usefulness.
 2. **OSS DataHub required.** Cloud-only does not qualify. Small VM /
-   Codespaces running OSS counts.
+ Codespaces running OSS counts.
 3. **Section 4 bar:** video + repo + README is enough. Hosted backend is
-   *not* required. Artifacts help. (Many teams cannot even start Docker
-   MySQL right now — that is our live-demo edge, not a free pass to skip
-   the video.)
+ *not* required. Artifacts help. (Many teams cannot even start Docker
+ MySQL right now - that is our live-demo edge, not a free pass to skip
+ the video.)
 
 Nightshift already matches the preferred architecture: Sentinel /
 `immunize_graph` / presence guards are deterministic; Claude does the
@@ -50,7 +50,7 @@ compounds.
 
 ## Competitive wedge (say this)
 
-PR guardians catch the rename *in the PR* — when someone opened one.
+PR guardians catch the rename *in the PR* - when someone opened one.
 Nightshift exists for the nights nobody opened a PR review, or the review
 missed meaning, or prod drifted anyway. Then Finance pages at 9:07. The
 agent works the incident **and leaves the graph smarter**, so night three
@@ -64,7 +64,7 @@ track possible; different job. Do not feature-chase them on deadline night.
 | URL | Job | Judge time |
 |---|---|---|
 | Landing `/` | Thesis + night→desk identity | 20s |
-| `try.*` | Break / wake / restore — proof | 40s |
+| `try.*` | Break / wake / restore - proof | 40s |
 | `/app` | Connected product + Sentinel tour | optional 20s |
 | `JUDGING.md` | Scorecard map | open in parallel |
 | skills#126 | OSS write surface | skim |
@@ -73,7 +73,7 @@ track possible; different job. Do not feature-chase them on deadline night.
 **try.*** is the sandbox. **/app** is the workspace. Same agent. Different door.
 
 Live hosted try.* is a **massive** edge while Codespaces/Docker MySQL is
-on fire for other teams. Keep the watchdog up. Still ship the video —
+on fire for other teams. Keep the watchdog up. Still ship the video - 
 official bar is video+repo+README; live demo is the abuse layer on top.
 
 ## Abuse checklist (pre-submit)
@@ -84,7 +84,7 @@ official bar is video+repo+README; live demo is the abuse layer on top.
 - [ ] `/app` login works with demo account
 - [ ] JUDGING.md linked from README + landing CTA
 - [ ] Devpost fields pasted from `docs/devpost.md`
-- [ ] Video link slotted into JUDGING + Devpost (founder) — **non-negotiable bar**
+- [ ] Video link slotted into JUDGING + Devpost (founder) - **non-negotiable bar**
 - [ ] Devpost names hybrid + on-call (not “PR guardian”)
 - [ ] No overclaim: presence guard ≠ value-level test
 
@@ -92,7 +92,7 @@ official bar is video+repo+README; live demo is the abuse layer on top.
 
 > Nightshift is not another pre-merge schema bot. It is the on-call loop
 > for the break that already shipped: Claude + deterministic guards on
-> DataHub, write-back into the graph, so the next night is a lookup —
+> DataHub, write-back into the graph, so the next night is a lookup - 
 > measured 14→5 tool calls, 2.2→1.1 min.
 
 ## If founder pastes more intel

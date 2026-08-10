@@ -4,7 +4,7 @@
 
 [Live demo](https://nightshift.51-91-121-153.sslip.io) · [Break it yourself](https://try.nightshift.51-91-121-153.sslip.io) · [JUDGING.md (60s)](JUDGING.md) · [How we win](docs/WIN.md) · [Upstream PR datahub-skills#126](https://github.com/datahub-project/datahub-skills/pull/126) · [Apache 2.0](LICENSE)
 
-**try.*** is the judge sandbox (break / wake / restore on a real graph). **/app** is the connected war room (your DataHub, Sentinel, history). Same agent loop; different entry. The dbt **demo PR** is a real draft fix the agent opened ([nightshift-dbt-demo#3](https://github.com/Mossab28/nightshift-dbt-demo/pull/3)) — proof of “agents that do real work,” not a screenshot.
+**try.*** is the judge sandbox (break / wake / restore on a real graph). **/app** is the connected war room (your DataHub, Sentinel, history). Same agent loop; different entry. The dbt **demo PR** is a real draft fix the agent opened ([nightshift-dbt-demo#3](https://github.com/Mossab28/nightshift-dbt-demo/pull/3)) - proof of “agents that do real work,” not a screenshot.
 
 ![Nightshift landing](docs/media/landing.png)
 
@@ -41,25 +41,25 @@ dbt source test so CI would block the regression. See the real draft PR:
 
 ```mermaid
 flowchart LR
-    P([📟 the pager]) --> A
+ P([📟 the pager]) --> A
 
-    subgraph agent [Nightshift agent (Claude)]
-        A[1 RECALL] --> B[2 LINEAGE]
-        B --> C[3 DIAGNOSE<br/>one root cause]
-        C --> D[4 REMEMBER]
-        D --> E[5 FIX PR<br/>draft]
-    end
+ subgraph agent [Nightshift agent (Claude)]
+ A[1 RECALL] --> B[2 LINEAGE]
+ B --> C[3 DIAGNOSE<br/>one root cause]
+ C --> D[4 REMEMBER]
+ D --> E[5 FIX PR<br/>draft]
+ end
 
-    subgraph dh [DataHub OSS]
-        M[(the graph remembers<br/>postmortems · tags · guards)]
-    end
+ subgraph dh [DataHub OSS]
+ M[(the graph remembers<br/>postmortems · tags · guards)]
+ end
 
-    A -- "recall_incident_memory" --> N
-    B -- "search · schemas · lineage + SQL" --> O[datahub MCP server<br/>official, reads]
-    D -- "incidents · assertions · memory" --> N[nightshift MCP server<br/>ours, writes]
-    O --> M
-    N --> M
-    E --> R([☀️ the morning report])
+ A -- "recall_incident_memory" --> N
+ B -- "search · schemas · lineage + SQL" --> O[datahub MCP server<br/>official, reads]
+ D -- "incidents · assertions · memory" --> N[nightshift MCP server<br/>ours, writes]
+ O --> M
+ N --> M
+ E --> R([☀️ the morning report])
 ```
 
 The official `mcp-server-datahub` covers the read surface completely. It has
@@ -80,11 +80,11 @@ the surfaces your team uses today:
 - **A machine-readable memory**, a structured property in JSON, for the next agent.
 - **A searchable failure-mode tag** for everyone, via `find_datasets_with_failure_mode`.
 - **A column-presence assertion** on the field that broke, visible in the
-  Validations tab (`guard_column`). Honest scope: it marks that the column
-  exists in the catalog; value-level checks (not-null / sum > 0) stay a
-  follow-up for dbt tests / CI.
+ Validations tab (`guard_column`). Honest scope: it marks that the column
+ exists in the catalog; value-level checks (not-null / sum > 0) stay a
+ follow-up for dbt tests / CI.
 - **A concrete fix**: a dbt change built from the columns the catalog actually
-  holds: [a real draft PR](https://github.com/Mossab28/nightshift-dbt-demo/pull/1).
+ holds: [a real draft PR](https://github.com/Mossab28/nightshift-dbt-demo/pull/1).
 
 Nightshift itself is stateless. The memory lives in DataHub aspects, so it
 survives restarts and model changes, and any MCP-capable agent pointed at the
@@ -109,12 +109,12 @@ retyped), it names the drift and wakes the night shift itself
 ## Authority boundaries
 
 - **Agent may write** (Nightshift MCP): incidents, documentation, structured
-  memory, failure tags, column-presence EXTERNAL assertions, draft fix PR.
+ memory, failure tags, column-presence EXTERNAL assertions, draft fix PR.
 - **Still human:** merge the PR, value-level tests, production deploy.
 - **Memory lives in DataHub aspects**, not in chat history. Nightshift is
-  stateless; the graph remembers across nights and model changes.
+ stateless; the graph remembers across nights and model changes.
 - Presence guards assert the column exists in the catalog. They are not
-  value-level quality tests (not-null / sum > 0 stay in dbt / CI).
+ value-level quality tests (not-null / sum > 0 stay in dbt / CI).
 
 Claims in this README are gated by `python scripts/verify_judging_evidence.py`.
 
@@ -124,9 +124,9 @@ Prerequisites: Docker with ~8 GB of memory, and either an authenticated
 `claude` CLI or an `ANTHROPIC_API_KEY`.
 
 ```bash
-make up datapack   # DataHub + a realistic 1,049-entity enterprise graph
-make setup         # install Nightshift
-make demo          # silently break the pipeline, hand the agent the pager
+make up datapack # DataHub + a realistic 1,049-entity enterprise graph
+make setup # install Nightshift
+make demo # silently break the pipeline, hand the agent the pager
 ```
 
 **If `datahub datapack` fails on a fresh PyPI install of `acryl-datahub` 1.7.0**
