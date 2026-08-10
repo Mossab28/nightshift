@@ -35,7 +35,7 @@ LIVE_PAGE = r"""<!doctype html>
  --ease: cubic-bezier(0.22, 1, 0.36, 1);
  }
  * { box-sizing: border-box; margin: 0; padding: 0; }
- html, body { height: 100%; }
+ html, body { height: 100%; overflow: hidden; }
  body {
  background: var(--bg);
  color: var(--ink);
@@ -48,10 +48,12 @@ LIVE_PAGE = r"""<!doctype html>
  .app {
  max-width: 980px;
  margin: 0 auto;
- min-height: 100%;
+ height: 100%;
+ max-height: 100vh;
  padding: 18px 18px 0;
  display: flex;
  flex-direction: column;
+ overflow: hidden;
  }
 
  .top {
@@ -112,7 +114,10 @@ LIVE_PAGE = r"""<!doctype html>
  border-radius: var(--radius);
  display: flex;
  flex-direction: column;
- min-height: min(68vh, 720px);
+ flex: 1;
+ min-height: 0;
+ height: 100%;
+ max-height: calc(100vh - 150px);
  overflow: hidden;
  box-shadow: 0 18px 40px -28px rgba(20,22,28,0.35);
  }
@@ -142,12 +147,19 @@ LIVE_PAGE = r"""<!doctype html>
 
  .stream {
  flex: 1;
+ min-height: 0;
  overflow-y: auto;
+ overscroll-behavior: contain;
  padding: 20px 18px 12px;
  display: flex;
  flex-direction: column;
  gap: 14px;
  scroll-behavior: smooth;
+ }
+ .stream__pin {
+ height: 1px;
+ width: 100%;
+ flex-shrink: 0;
  }
  .empty {
  margin: auto;
@@ -421,6 +433,7 @@ LIVE_PAGE = r"""<!doctype html>
  <h2>Start with the pager</h2>
  <p>Click <b>Break the pipeline</b>. Then wake Nightshift. You will see a normal chat, not a wall of tool names.</p>
  </div>
+ <div class="stream__pin" id="stream-pin" aria-hidden="true"></div>
  </div>
  <div class="composer">
  <div class="actions">
@@ -459,6 +472,7 @@ LIVE_PAGE = r"""<!doctype html>
 const $ = id => document.getElementById(id);
 const stream = $("stream");
 const empty = $("empty");
+const pin = $("stream-pin");
 const lit = new Set();
 let lastSig = "";
 let painted = { pager: false, thoughts: 0, tools: 0, conclusion: false, working: false };
@@ -466,6 +480,20 @@ let busy = null;
 let pollMs = 1200;
 let pollTimer = null;
 let workingEl = null;
+let stickBottom = true;
+
+stream.addEventListener("scroll", () => {
+ const gap = stream.scrollHeight - stream.scrollTop - stream.clientHeight;
+ stickBottom = gap < 96;
+}, { passive: true });
+
+function scrollChat(force) {
+ if (!force && !stickBottom) return;
+ requestAnimationFrame(() => {
+ if (pin) pin.scrollIntoView({ block: "end", behavior: "smooth" });
+ else stream.scrollTop = stream.scrollHeight;
+ });
+}
 
 const TOOL_PLAIN = [
  [/recall|failure_mode/, "Checking memory for a known failure"],
@@ -515,8 +543,10 @@ function resetChrome() {
  lit.clear();
  painted = { pager: false, thoughts: 0, tools: 0, conclusion: false, working: false };
  workingEl = null;
+ stickBottom = true;
  stream.innerHTML = "";
  stream.appendChild(empty);
+ if (pin) stream.appendChild(pin);
  showEmpty();
  $("aspects").querySelectorAll("li").forEach(li => li.classList.remove("is-on"));
 }
@@ -535,8 +565,9 @@ function addRow(kind, kicker, htmlBody) {
  row.innerHTML =
  `<div class="kicker">${esc(kicker)}</div>` +
  `<div class="bubble bubble--${kind === "status" ? "status" : kind}">${htmlBody}</div>`;
- stream.appendChild(row);
- stream.scrollTop = stream.scrollHeight;
+ if (pin && pin.parentNode === stream) stream.insertBefore(row, pin);
+ else stream.appendChild(row);
+ scrollChat(true);
  return row;
 }
 
@@ -568,7 +599,7 @@ function pushWorkStep(text) {
  line.dataset.key = text;
  line.innerHTML = `<b>·</b> ${esc(text)}`;
  box.appendChild(line);
- stream.scrollTop = stream.scrollHeight;
+ scrollChat(true);
 }
 
 function finishWorking() {
