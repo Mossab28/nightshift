@@ -22,14 +22,14 @@ Two write paths, both verified against OSS GMS in production:
 
 ## Multi-Agent Compatibility
 
-This skill is designed to work across multiple coding agents (Claude Code, Cursor, Codex, Copilot, Gemini CLI, Windsurf, and others).
+This skill is designed to work across multiple coding agents (Cursor, Codex, Copilot, Gemini CLI, Windsurf, and others).
 
 **What works everywhere:**
 
 - Incident mutations via `datahub graphql --query '...'`
 - External assertion writes via a short Python script using `acryl-datahub` (the same package that ships the CLI)
 
-**Claude Code-specific features** (other agents can safely ignore these):
+**Optional agent-specific features** (agents without frontmatter support can ignore these):
 
 - `allowed-tools` in the YAML frontmatter above
 

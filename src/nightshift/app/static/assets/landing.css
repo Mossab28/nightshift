@@ -1086,7 +1086,7 @@ a { color: inherit; text-decoration: none; }
  scroll-behavior: smooth;
 }
 
-/* Transcript identity (Claude Code), not chat bubbles.
+/* Transcript identity (agent desk), not chat bubbles.
    Scoped under .war__stream so Slack / sentinel .msg never inherit opacity:0. */
 .war__stream .msg {
   display: grid;
