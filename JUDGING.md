@@ -1,14 +1,14 @@
-# JUDGING.md — 60-second route
+# JUDGING.md - 60-second route
 
-**Track:** Agents That Do Real Work  
-**Live app:** https://nightshift.51-91-121-153.sslip.io  
-**One-click demo:** https://try.nightshift.51-91-121-153.sslip.io  
-**Repo:** https://github.com/Mossab28/nightshift  
-**Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`  
-**Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md)  
+**Track:** Agents That Do Real Work 
+**Live app:** https://nightshift.51-91-121-153.sslip.io 
+**One-click demo:** https://try.nightshift.51-91-121-153.sslip.io 
+**Repo:** https://github.com/Mossab28/nightshift 
+**Demo login (app):** `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026` 
+**Theorycraft:** [docs/WIN.md](docs/WIN.md) · **Devpost paste:** [docs/devpost.md](docs/devpost.md) 
 **dbt fix PR (real work artifact):** https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
-**One-line differentiator:** Not another pre-merge schema bot — Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup (14→5 calls, 2.2→1.1 min). Hybrid welcome (Sentinel/guards deterministic + Claude investigates).
+**One-line differentiator:** Not another pre-merge schema bot - Nightshift is the on-call loop for the break that already shipped: write the night into DataHub so the next one is a lookup (14→5 calls, 2.2→1.1 min). Hybrid welcome (Sentinel/guards deterministic + Claude investigates).
 
 Two surfaces, one product (plus a landing pitch):
 
