@@ -1,24 +1,41 @@
-# Demo vidéo - prompteur EN + indications FR (~60-90s)
+# Demo vidéo ~2:30 - prompteur EN + indications FR
 
-1080p, navigateur seul. Avant le take : **Restore** sur try.*, zoom ~110%, cacher la barre de favoris.
+**Idée :** on **entre dans le SaaS** (`/app`) pour que le produit existe à l’écran, puis try.* pour le Break → Wake live.  
+Sinon oui : landing + try seul = “y’a pas d’app”.
 
-Utilise **https** (pas de warning navigateur) :
+**Montage :** coupe tous les loads (pages, login, Breaking…, cold start, onglets).  
+**Durée :** vise 2:20–2:40 (max &lt; 3:00).
+
+URLs (`https://` only) :
 
 - Landing : https://nightshift.51-91-121-153.sslip.io
-- try.* : https://try.nightshift.51-91-121-153.sslip.io
-- Optionnel : onglet DataHub + https://github.com/Mossab28/nightshift-dbt-demo/pull/3
+- SaaS `/app` : https://nightshift.51-91-121-153.sslip.io/app  
+  Login : `mossab.mirandeney1@gmail.com` / `nightshift-demo-2026`
+- Live break (try.*) : https://try.nightshift.51-91-121-153.sslip.io
+- DataHub UI + PR https://github.com/Mossab28/nightshift-dbt-demo/pull/3
 
-Le site est public. Cert Let’s Encrypt OK. HTTP redirige vers HTTPS. Reste sur `https://` à l’écran.
+Avant : Restore try.*. Sur `/app`, aie un shift prêt à ouvrir (ou tu en lances un). Zoom ~110%.
 
 ---
 
-## Prompteur (indications en français, parlato en anglais)
+## Timeline (ce que le juge voit après coupe)
 
-Les lignes `[…]` = ce que tu fais à la souris (FR).  
-Le reste = ce que tu dis à voix haute (EN).
+| Cut | Durée | Où | Quoi |
+|---|---|---|---|
+| A | 0:00–0:18 | Landing | Pitch |
+| B | 0:18–0:50 | `/app` | Login → night desk / shift (chat bulles + rail DataHub) |
+| C | 0:50–1:35 | try.* | Break → Wake → chat + checklist (waits coupés) |
+| D | 1:35–1:55 | try.* | Morning report + 14→5 / 2.2→1.1 |
+| E | 1:55–2:15 | DataHub | Incident / docs / validations |
+| F | 2:15–2:30 | GitHub PR | Draft fix + close |
+
+---
+
+## Prompteur (indications FR, parlato EN)
 
 ```
-[OUVRIR la landing https://nightshift.51-91-121-153.sslip.io — hero visible, curseur près de Break]
+[OUVRIR landing — hero]
+[COUPER le load]
 
 Okay so... this is Nightshift.
 
@@ -26,29 +43,46 @@ Uh, basically it's the on-call data team, sitting on top of DataHub.
 Not like... another pre-merge schema bot, you know?
 It's for the break that already shipped. The 2am pager thing.
 
-[CLIQUER "Break a pipeline yourself" / "Break it" → attendre que try.* charge]
+[CLIQUER "War room" / aller sur /app]
+[COUPER load]
+[LOGIN démo si besoin — COUPER la frappe ; reprise déjà connecté]
 
-Alright, so I'm gonna break a real pipeline here.
+Alright, so this is the actual product. The war room.
 
-[CLIQUER "Break the pipeline" — attendre la bulle pager]
+[OUVRIR un shift — night desk immersif, chat bulles + checklist DataHub]
+[COUPER navigation]
+
+Same night desk as the live demo. Chat on the left, DataHub write-back on the right.
+This is the actual product inside.
+
+[CLIQUER "Break it" depuis la landing/nav OU ouvrir try.* directement]
+[COUPER le hop — reprise sur try.* desk]
+
+And for the live proof, I'm gonna break a real pipeline on the shared demo graph.
+
+[CLIQUER "Break the pipeline"]
+[COUPER Breaking… — reprise bulle Pager]
 
 Someone upstream renamed a column overnight, told nobody...
 and now finance is staring at a revenue dashboard that just reads zero.
 Which, yeah. Not great.
 
 [CLIQUER "Wake the night shift"]
+[COUPER cold start — reprise "On it" / premières bulles]
 
 So I'm waking the night shift.
-
-[MONTRER avec le curseur le chat "On it" / les étapes, puis la checklist DataHub à droite qui s'allume]
 
 And uh... first thing it does is check memory. Like, have we seen this shape before.
 Then it only walks lineage for the stuff it doesn't already know.
 Picks one root cause. Not a list of suspects. Just one.
+
+[MONTRER chat + checklist DataHub qui s'allume]
+[COUPER les trous entre bulles]
+
 And then it writes the night back into DataHub, right?
 Incident, postmortem, presence guard, draft fix PR... the whole thing.
 
-[LAISSER le chat scroller tout seul jusqu'au morning report]
+[COUPER jusqu'au morning report]
 
 And the wild part is... second night, same break?
 It doesn't re-investigate. It just remembers.
@@ -57,25 +91,49 @@ An investigation becomes a lookup.
 We actually measured that. Uh, 14 tool calls down to 5.
 Like 2.2 minutes down to 1.1.
 
-[OPTIONNEL : passer sur DataHub Incidents / Docs / Validations]
-[OPTIONNEL : montrer la draft fix PR GitHub #3]
+[PASSER DataHub Incidents — COUPER nav]
+...and you can open DataHub and actually see it. Incident's there.
 
-Yeah. Link's in the submission if you wanna break it yourself.
+[Docs]
+Postmortem in the docs...
+
+[Validations]
+...presence guard in Validations.
+
+[PASSER PR GitHub #3 — COUPER load]
+Plus a real draft fix PR the agent opened. Actual work, not vibes.
+
+[RETOUR flash /app war room OU landing]
+
+Yeah. So that's the product inside, and the live break outside on the demo graph.
+Link's in the submission if you wanna try it yourself.
 ```
 
-Si l’agent est lent après Wake, dire :
+Filler si wait :
 
 ```
 Okay it's spinning up the tools real quick... yeah, there we go.
 ```
 
-Version courte (~55s) : saute les deux lignes OPTIONNEL.
+---
+
+## Rôle de chaque surface
+
+| Surface | Dans la vidéo |
+|---|---|
+| Landing | Pitch |
+| **`/app`** | **Prouve que le SaaS existe** (desk, shift, chat) — 20–30s max, pas le dashboard vide |
+| **try.*** | Preuve one-click Break → Wake |
+| DataHub + PR | Preuve write-back / real work |
+
+Sur `/app` : ouvre **direct un shift** (war room chat). Skip Settings / Memory list / dashboard cards vides.
 
 ---
 
-## À éviter
+## Checklist
 
-- Pas de `.env` / tokens / Slack en caméra
-- Pas de claim “not-null value test” (presence guard seulement)
-- Pas de try.* sale (Restore d’abord)
-- Pas d’URL `http://` à l’écran ; reste en `https://`
+- [ ] Compte démo login prêt
+- [ ] Un shift `/app` ouvrable en 1 clic
+- [ ] try.* Restore
+- [ ] Onglets DataHub + PR prêts
+- [ ] Export **&lt; 3:00**, vise **~2:30**
