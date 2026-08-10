@@ -112,8 +112,9 @@ Incidents, puis Documentation, puis Validation. Trois plans courts.**
 
 ## Étape 8 — La PR
 
-**Ouvre https://github.com/Mossab28/nightshift-dbt-demo/pull/3 — montre le
-titre draft puis l'onglet Files changed avec le diff d'une ligne.**
+**Le numéro de PR change à chaque nuit : clique le lien de la PR directement
+DANS le morning report (il y est toujours), puis montre le titre Draft et
+l'onglet Files changed avec le diff d'une ligne.**
 
 > And here's the draft fix PR the agent opened on the dbt repo. One line,
 > derived from the real schema in the catalog — not hallucinated. And
