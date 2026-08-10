@@ -34,6 +34,11 @@ def landing() -> FileResponse:
     return FileResponse(STATIC / "landing.html")
 
 
+@app.get("/favicon.ico")
+def favicon() -> FileResponse:
+    return FileResponse(STATIC / "assets" / "favicon.svg", media_type="image/svg+xml")
+
+
 @app.get("/{page:path}")
 def spa(page: str) -> FileResponse:
     """Single-page app: /app and every other non-API path serve the shell."""
