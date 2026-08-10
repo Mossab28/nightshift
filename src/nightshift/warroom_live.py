@@ -16,20 +16,20 @@ LIVE_PAGE = r"""<!doctype html>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #000000;
-    --surface: #15171b;
-    --surface-bar: #1c1f25;
-    --ink: #ffffff;
-    --ink-2: rgba(255, 255, 255, 0.66);
-    --slate: rgba(255, 255, 255, 0.52);
-    --slate-dim: rgba(255, 255, 255, 0.38);
-    --rule-soft: rgba(255, 255, 255, 0.12);
-    --moon: #ffd76e;
-    --tool: #6ea8ff;
-    --memory: #b98aff;
-    --write: #5fd29a;
-    --alarm: #ff6b6b;
-    --radius: 18px;
+    --paper: #e4e7ec;
+    --surface: #f7f8fa;
+    --surface-bar: #eef0f4;
+    --ink: #14161c;
+    --ink-2: rgba(20, 22, 28, 0.72);
+    --slate: rgba(20, 22, 28, 0.55);
+    --slate-dim: rgba(20, 22, 28, 0.4);
+    --rule-soft: rgba(20, 22, 28, 0.1);
+    --moon: #8a6818;
+    --tool: #2b5f9e;
+    --memory: #5c408f;
+    --write: #1a6b48;
+    --alarm: #a82828;
+    --radius: 6px;
     --font: "Figtree", system-ui, -apple-system, sans-serif;
     --mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
     --ease: cubic-bezier(0.22, 1, 0.36, 1);
@@ -42,7 +42,20 @@ LIVE_PAGE = r"""<!doctype html>
     font: 500 15px/1.5 var(--font);
     -webkit-font-smoothing: antialiased;
     padding: clamp(20px, 4vw, 40px);
+    color-scheme: light;
   }
+  .where {
+    display: inline-flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    margin: 0 0 14px;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--slate-dim);
+  }
+  .where b {
+    font-weight: 500; color: var(--moon);
+    border: 1px solid rgba(138,104,24,0.35); border-radius: 3px;
+    padding: 4px 8px; background: rgba(138,104,24,0.08);
+  }
+  .where a { color: var(--tool); text-transform: none; letter-spacing: 0; }
   .shell { max-width: 1100px; margin: 0 auto; }
   .brand {
     display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
@@ -82,12 +95,12 @@ LIVE_PAGE = r"""<!doctype html>
   #break:hover:not(:disabled) { background: rgba(255, 107, 107, 0.14); }
   #shift {
     color: var(--moon);
-    border-color: rgba(255, 215, 110, 0.4);
-    background: rgba(255, 215, 110, 0.08);
+    border-color: rgba(138, 104, 24, 0.4);
+    background: rgba(138, 104, 24, 0.08);
   }
   #shift:hover:not(:disabled) {
-    background: rgba(255, 215, 110, 0.14);
-    box-shadow: 0 0 24px rgba(255, 215, 110, 0.12);
+    background: rgba(138, 104, 24, 0.14);
+    box-shadow: 0 0 24px rgba(138, 104, 24, 0.1);
   }
   #reset { color: var(--slate); }
   #reset:hover:not(:disabled) {
@@ -111,7 +124,7 @@ LIVE_PAGE = r"""<!doctype html>
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 4px 8px;
-    border-radius: 999px;
+    border-radius: 3px;
     background: rgba(255, 255, 255, 0.06);
     color: var(--slate);
     flex-shrink: 0;
@@ -122,8 +135,8 @@ LIVE_PAGE = r"""<!doctype html>
   }
   .status.working .status__pill {
     color: var(--moon);
-    background: rgba(255, 215, 110, 0.12);
-    box-shadow: 0 0 16px rgba(255, 215, 110, 0.15);
+    background: rgba(138, 104, 24, 0.1);
+    box-shadow: none;
   }
   .status.done .status__pill {
     color: var(--write);
@@ -138,10 +151,9 @@ LIVE_PAGE = r"""<!doctype html>
     background: var(--surface);
     overflow: hidden;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.06),
-      0 0 0 1px rgba(255, 255, 255, 0.05),
-      0 40px 100px -50px rgba(255, 215, 110, 0.22),
-      0 0 80px -40px rgba(110, 168, 255, 0.18);
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 0 0 1px rgba(20, 22, 28, 0.1),
+      0 24px 60px -36px rgba(20, 22, 28, 0.28);
   }
   .war__chat {
     display: flex;
@@ -158,7 +170,7 @@ LIVE_PAGE = r"""<!doctype html>
     flex-wrap: wrap;
     padding: 14px 18px;
     border-bottom: 1px solid var(--rule-soft);
-    background: rgba(0, 0, 0, 0.25);
+    background: var(--surface-bar);
   }
   .war__top-left {
     display: flex; align-items: center; gap: 10px; min-width: 0;
@@ -173,13 +185,13 @@ LIVE_PAGE = r"""<!doctype html>
     letter-spacing: 0.08em;
     text-transform: uppercase;
     padding: 4px 8px;
-    border-radius: 999px;
+    border-radius: 3px;
     background: rgba(255, 255, 255, 0.06);
     color: var(--slate);
   }
   .war__live.is-live {
     color: var(--moon);
-    background: rgba(255, 215, 110, 0.1);
+    background: rgba(138, 104, 24, 0.1);
   }
   .war__live.is-done {
     color: var(--write);
@@ -192,7 +204,7 @@ LIVE_PAGE = r"""<!doctype html>
     letter-spacing: 0.06em;
     text-transform: uppercase;
     padding: 5px 9px;
-    border-radius: 999px;
+    border-radius: 3px;
     color: var(--slate-dim);
     background: rgba(255, 255, 255, 0.03);
     border: 1px solid transparent;
@@ -200,9 +212,9 @@ LIVE_PAGE = r"""<!doctype html>
   }
   .war__step.is-on {
     color: var(--moon);
-    border-color: rgba(255, 215, 110, 0.35);
-    background: rgba(255, 215, 110, 0.08);
-    box-shadow: 0 0 18px rgba(255, 215, 110, 0.12);
+    border-color: rgba(138, 104, 24, 0.35);
+    background: rgba(138, 104, 24, 0.08);
+    box-shadow: 0 0 18px rgba(138, 104, 24, 0.1);
   }
   .war__step.is-done {
     color: var(--write);
@@ -277,7 +289,7 @@ LIVE_PAGE = r"""<!doctype html>
     display: flex;
     flex-direction: column;
     min-height: 0;
-    background: rgba(0, 0, 0, 0.35);
+    background: var(--surface-bar);
   }
   .war__graph-head {
     padding: 14px 16px;
@@ -343,11 +355,17 @@ LIVE_PAGE = r"""<!doctype html>
 </head>
 <body>
 <div class="shell">
+  <p class="where"><b>try.* · judge sandbox</b>
+    <span>not /app</span>
+    · <a href="https://nightshift.51-91-121-153.sslip.io/">landing</a>
+    · <a href="https://nightshift.51-91-121-153.sslip.io/app">war room</a>
+    · <a href="https://github.com/Mossab28/nightshift/blob/main/JUDGING.md">JUDGING.md</a>
+  </p>
   <div class="brand">
     <h1><span class="moon">&#9789;</span> Nightshift <span class="slash">/ break it yourself</span></h1>
   </div>
-  <p class="sub">Judge sandbox — not the SaaS war room. Real DataHub + real Claude agent.
-  Break the pipeline, wake the shift, watch write-back land. For your connected workspace use
+  <p class="sub">One-click proof on a real DataHub graph. Break → Wake → Restore.
+  The connected product (your token, Sentinel, history) lives at
   <a href="https://nightshift.51-91-121-153.sslip.io/app">/app</a>.</p>
 
   <div class="controls">
