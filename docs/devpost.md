@@ -15,7 +15,7 @@
 - Upstream skill PR: https://github.com/datahub-project/datahub-skills/pull/126
 - Upstream issue: https://github.com/datahub-project/datahub/issues/19028
 - Demo fix PR: https://github.com/Mossab28/nightshift-dbt-demo/pull/3
-- Video: (colle le lien dès qu'elle est en ligne)
+- Video: https://nightshift.51-91-121-153.sslip.io/demo (upload `assets/demo.mp4`)
 
 Surface map: landing = pitch · try.* = one-click proof · /app = connected product.
 
