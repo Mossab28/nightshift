@@ -514,13 +514,38 @@ function wrStepFor(label, kind) {
  return null;
 }
 
+const WR_TOOL_PLAIN = [
+ [/recall|failure_mode/, "Checking memory for a known failure"],
+ [/lineage|get_lineage/, "Walking lineage upstream"],
+ [/schema|list_schema|get_entities|dataset_queries/, "Reading the real schema"],
+ [/open_incident/, "Opening an incident in DataHub"],
+ [/resolve_incident/, "Resolving the incident"],
+ [/remember_incident/, "Writing the postmortem into the graph"],
+ [/guard_column|immunize/, "Leaving a presence guard"],
+ [/open_fix_pr/, "Opening a draft fix PR"],
+ [/toolsearch|tool_search/, "Loading the tools for this shift"],
+ [/search|query/, "Searching the catalog"],
+];
+
+function wrPlainTool(label) {
+ const l = (label || "").toLowerCase();
+ for (const [re, text] of WR_TOOL_PLAIN) if (re.test(l)) return text;
+ return "Working in DataHub";
+}
+
+function wrBubble(kind, kicker, bodyHtml) {
+ return `<div class="wr-row is-${kind}">` +
+ `<div class="wr-kicker">${esc(kicker)}</div>` +
+ `<div class="wr-bubble wr-bubble--${kind}">${bodyHtml}</div></div>`;
+}
+
 async function viewWarroom(shiftId) {
  const node = el(`<div class="wr" data-tour="warroom">
  <header class="wr__top">
  <div class="wr__top-left">
  <a class="wr__back" href="#/shifts">← shifts</a>
  <span class="wr__status" id="wr-status">idle</span>
- <b id="wr-title">War room</b>
+ <b id="wr-title">Night desk</b>
  </div>
  <div class="wr__steps" id="wr-steps">
  <span class="wr__step" data-step="recall">Recall</span>
@@ -533,34 +558,28 @@ async function viewWarroom(shiftId) {
  </header>
  <div class="wr__grid">
  <section class="wr__chat">
- <p class="wr__pager" id="wr-pager"></p>
- <p class="wr__urn mono" id="wr-urn"></p>
  <div class="wr__stream" id="wr-stream"></div>
- <div class="plate wr__report" id="wr-report" hidden>
- <div class="wr__report-head" id="wr-report-head">Morning report</div>
- <div class="wr__report-body" id="wr-report-body"></div>
- </div>
  <div class="plate evidence" id="evidence" hidden>
  <div class="head">Lineage path</div>
  <div class="evidence-scroll"></div>
  </div>
  </section>
  <aside class="wr__rail" data-tour="writeback">
- <div class="wr__rail-head">DataHub · write-back</div>
+ <div class="wr__rail-head">DataHub</div>
  <ul class="wr__aspects" id="wr-aspects">
- <li data-aspect="recall"><i style="--c:var(--memory)"></i><span>Memory read</span><b>·</b></li>
- <li data-aspect="incident"><i style="--c:var(--alarm)"></i><span>Incident</span><b>·</b></li>
- <li data-aspect="memory"><i style="--c:var(--moon)"></i><span>Postmortem</span><b>·</b></li>
- <li data-aspect="guard"><i style="--c:var(--write)"></i><span>Presence guard</span><b>·</b></li>
- <li data-aspect="pr"><i style="--c:var(--tool)"></i><span>Draft PR</span><b>·</b></li>
+ <li data-aspect="recall"><span>Memory check</span><i>✓</i></li>
+ <li data-aspect="incident"><span>Incident</span><i>✓</i></li>
+ <li data-aspect="memory"><span>Postmortem</span><i>✓</i></li>
+ <li data-aspect="guard"><span>Presence guard</span><i>✓</i></li>
+ <li data-aspect="pr"><span>Draft fix PR</span><i>✓</i></li>
  </ul>
- <p class="wr__rail-note">The agent is the process behind this page. Saturation means it acted.</p>
+ <p class="wr__rail-note">Same chat as try.*. When a row checks off, Nightshift wrote it into your graph.</p>
  </aside>
  </div>
  </div>`);
  shell("shifts", node, { wide: true });
 
- let lastCount = -1;
+ let lastSig = "";
  let evidenceTried = false;
  const lit = new Set();
 
@@ -568,9 +587,7 @@ async function viewWarroom(shiftId) {
  if (!key || lit.has(key)) return;
  lit.add(key);
  const li = node.querySelector(`[data-aspect="${key}"]`);
- if (!li) return;
- li.classList.add("is-on");
- li.querySelector("b").textContent = key === "recall" ? "read" : "written";
+ if (li) li.classList.add("is-on");
  };
 
  const setStep = (name) => {
@@ -601,8 +618,6 @@ async function viewWarroom(shiftId) {
  };
 
  const render = (s) => {
- node.querySelector("#wr-pager").textContent = s.symptom || "";
- node.querySelector("#wr-urn").textContent = s.entry_point_urn || "";
  node.querySelector("#wr-title").textContent =
  s.started_from_memory ? "Night shift · from memory" : "Night shift · cold";
  node.querySelector("#wr-meta").textContent =
@@ -612,44 +627,74 @@ async function viewWarroom(shiftId) {
  status.className = "wr__status status-" + s.status;
 
  const events = s.events || [];
- if (events.length !== lastCount) {
- lastCount = events.length;
- const stream = node.querySelector("#wr-stream");
- stream.innerHTML = events.map((ev) => {
- const css = classify(ev);
- const stamp = (ev.at || "").split("T").pop() || "";
- const label = ev.label || (css === "thought" ? "thinking" : "");
+ const running = s.status === "running";
+ const sig = events.length + "|" + (s.conclusion || "") + "|" + s.status;
+ if (sig === lastSig) return running;
+ lastSig = sig;
+
+ lit.clear();
+ node.querySelectorAll(".wr__step").forEach((el) => el.classList.remove("is-on", "is-done"));
+ node.querySelectorAll(".wr__aspects li").forEach((li) => li.classList.remove("is-on"));
+
+ const thoughts = events.filter((ev) => classify(ev) === "thought");
+ const tools = events.filter((ev) => classify(ev) !== "thought");
+ const parts = [];
+
+ if (s.symptom) {
+ const urn = s.entry_point_urn
+ ? `<div class="wr-meta">${esc(s.entry_point_urn)}</div>`
+ : "";
+ parts.push(wrBubble("user", "Pager", esc(s.symptom) + urn));
+ }
+
+ const stepSeen = new Set();
+ const stepLines = [];
+ tools.forEach((ev) => {
+ const label = ev.label || "";
  const step = wrStepFor(label, ev.kind);
  if (step) setStep(step);
  const aspect = wrAspectKey(label);
  if (aspect) lightAspect(aspect);
- if (css === "thought") {
- return `<div class="wr-msg wr-msg--agent">
- <div class="wr-msg__who"><span>nightshift</span><time>${esc(stamp)}</time></div>
- <div class="wr-msg__body">${esc(ev.detail || "")}</div>
- </div>`;
+ const plain = wrPlainTool(label);
+ if (!stepSeen.has(plain) && stepLines.length < 6) {
+ stepSeen.add(plain);
+ stepLines.push(plain);
  }
- return `<div class="wr-msg wr-msg--tool">
- <div class="wr-msg__who"><span>tool</span><time>${esc(stamp)}</time></div>
- <div class="wr-tool ${css}">
- <span class="wr-tool__name">${esc(label)}</span>
- <span class="wr-tool__stamp">${esc(stamp)}</span>
- <span class="wr-tool__detail">${esc(ev.detail || "")}</span>
- </div>
- </div>`;
- }).join("");
- stream.scrollTop = stream.scrollHeight;
+ });
+
+ if (tools.length || running) {
+ const stepsHtml = stepLines.map((t) => `<div><b>·</b> ${esc(t)}</div>`).join("");
+ const head = running
+ ? `<div class="wr-working"><span class="wr-dots"><i></i><i></i><i></i></span><span>On it</span></div>`
+ : `<div class="wr-working"><span>What it did</span></div>`;
+ parts.push(wrBubble("assistant", "Nightshift", head + `<div class="wr-steps">${stepsHtml}</div>`));
  }
 
- const running = s.status === "running";
- const report = node.querySelector("#wr-report");
+ thoughts.forEach((ev, i) => {
+ const t = (ev.detail || "").trim();
+ if (!t) return;
+ if (t.length < 40 && i < thoughts.length - 1) return;
+ setStep("diagnose");
+ parts.push(wrBubble("assistant", "Nightshift", esc(t)));
+ });
+
  if (!running && s.conclusion) {
- report.hidden = false;
- report.classList.toggle("failed", s.status === "failed");
- node.querySelector("#wr-report-head").textContent =
- s.status === "failed" ? "Shift failed" : "Morning report";
- node.querySelector("#wr-report-body").textContent = s.conclusion;
+ setStep("fix");
+ ["incident", "memory", "guard", "pr"].forEach(lightAspect);
+ const failed = s.status === "failed";
+ const kicker = failed ? "Shift failed" : "Morning report";
+ parts.push(
+ `<div class="wr-row is-assistant">` +
+ `<div class="wr-kicker">${esc(kicker)}</div>` +
+ `<div class="wr-bubble wr-bubble--assistant${failed ? " is-failed" : ""}">${esc(s.conclusion)}</div></div>`
+ );
  }
+
+ const stream = node.querySelector("#wr-stream");
+ stream.innerHTML = parts.join("") ||
+ `<div class="empty"><p>Waiting for the night shift to start writing.</p></div>`;
+ stream.scrollTop = stream.scrollHeight;
+
  if (!running) maybeEvidence(s);
  return running;
  };
@@ -662,7 +707,7 @@ async function viewWarroom(shiftId) {
  try {
  if (!render(await load())) stopPolling();
  } catch { stopPolling(); }
- }, 2000);
+ }, 1500);
  }
  } catch (ex) {
  node.querySelector("#wr-stream").innerHTML =
